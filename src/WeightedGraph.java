@@ -1,5 +1,9 @@
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
+import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
 public class WeightedGraph {
@@ -79,11 +83,14 @@ public class WeightedGraph {
 
     void dijkstra(Node s){
         initforgj(s);
-        Node []pri = new Node[N];
 
+        for (int i = N; i > 1; --i) {
+            Node n = node[i];
+            for (Vkant k = (Vkant)n.kant1 ;  k != null; k = k.neste) {
+                forkort(n,k);
+            }
+        }
     }
-
-
 
     public int returnIndexOfNode(Node nodeInput){
         for (int i = 0; i < node.length; i++) {
@@ -92,6 +99,23 @@ public class WeightedGraph {
             }
         }
         return -1;
+    }
+
+    public static void main(String[] args) throws IOException {
+        WeightedGraph graf = new WeightedGraph();
+        String fileName = "vg1";
+
+        BufferedReader br = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + fileName + ".txt"));
+        graf.ny_vgraf(br);
+
+        for (int i = 0; i < graf.node.length; i++) {
+
+        }
+
+
+
+
+
     }
 
 
