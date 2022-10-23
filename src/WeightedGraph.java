@@ -121,9 +121,6 @@ public class WeightedGraph {
             return;
         }
 
-
-        System.out.println(returnIndexOfNode(nearestNode) + " " + returnIndexOfNode(previousNode));
-
         totalDistance += nearestNodeDistance;
         nodeDistances[returnIndexOfNode(nearestNode)] = totalDistance;
         previousNodes[returnIndexOfNode(nearestNode)] = previousNode;
