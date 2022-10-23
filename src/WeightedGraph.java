@@ -81,11 +81,22 @@ public class WeightedGraph {
         ((Forgj)s.d).dist = 0;
     }
 
+    //TODO: Add functionality
+    public void lag_priko(Node[] pri){
+
+    }
+
+    //TODO: Add functionality
+    public Node hent_min(int i, Node[] pri){
+        return null;
+    }
+
     void dijkstra(Node s){
         initforgj(s);
-
+        Node []pri = new Node[N];
+        lag_priko(pri);
         for (int i = N; i > 1; --i) {
-            Node n = node[i];
+            Node n = hent_min(i,pri);
             for (Vkant k = (Vkant)n.kant1 ;  k != null; k = k.neste) {
                 forkort(n,k);
             }
