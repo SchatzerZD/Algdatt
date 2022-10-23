@@ -1,17 +1,12 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class WeightedGraph {
-
-    int totalDistance = 0;
-
     int N,K;
     Node []node;
-    int[] nodeDistances;
-    Node[] previousNodes;
-    boolean[] visited;
+    boolean[] addedList;
 
     class Kant{
         Kant neste;
@@ -52,14 +47,10 @@ public class WeightedGraph {
 
         N = Integer.parseInt(st.nextToken());
         node = new Node[N];
-
-        nodeDistances = new int[N];
-        visited = new boolean[N];
-        previousNodes = new Node[N];
+        addedList = new boolean[N];
 
         for (int i = 0; i < N; ++i) {
             node[i] = new Node();
-            nodeDistances[i] = Forgj.uendelig;
         }
 
         K = Integer.parseInt(st.nextToken());
@@ -69,7 +60,7 @@ public class WeightedGraph {
             int til = Integer.parseInt(st.nextToken());
             int vekt = Integer.parseInt(st.nextToken());
             Vkant k = new Vkant(node[til],(Vkant)node[fra].kant1, vekt);
-            node[fra].kant1 = (Vkant)k;
+            node[fra].kant1 = k;
         }
     }
 
@@ -91,44 +82,61 @@ public class WeightedGraph {
     Node getNearestNode(Node s){
         int minDist = Forgj.uendelig;
         Node nearestNode = s;
-        for (Node n: node) {
-            if(n != s){
-                if(((Forgj)n.d).dist < minDist){
-                    minDist = ((Forgj)n.d).dist;
-                    nearestNode = n;
-                }
+        for (Kant k = s.kant1; k != null; k = k.neste) {
+            if(minDist > ((Vkant)k).vekt){
+                minDist = ((Vkant)k).vekt;
+                nearestNode = k.til;
             }
         }
         return nearestNode;
     }
 
 
+
+
+
+    List<Node> lag_priko(Node startNode){
+        ArrayList<Node> nodeArrayList = new ArrayList<>();
+        Node tempNode = startNode;
+
+        while(!nodeArrayList.contains(tempNode)){
+            nodeArrayList.add(tempNode);
+            if(getNearestNode(tempNode) != tempNode){
+                tempNode = getNearestNode(tempNode);
+            }else{
+                break;
+            }
+        }
+
+
+        System.out.println();
+
+        for (Node n: nodeArrayList) {
+            System.out.print(returnIndexOfNode(n) + " ");
+        }
+        System.out.println();
+        System.out.println();
+
+        return nodeArrayList;
+    }
+
     void dijkstra(Node s){
-
         initforgj(s);
+        ArrayList<Node> nodeArrayList = (ArrayList<Node>) lag_priko(s);
 
-
-        for (Kant k = s.kant1; k != null; k = k.neste) {
-                forkort(s,(Vkant) k);
+        for (int i = 0; i < nodeArrayList.size(); i++) {
+            Node n = nodeArrayList.get(i);
+            for (Kant k = n.kant1; k != null; k = k.neste) {
+                forkort(n, (Vkant) k);
+            }
         }
-
-        Node nearestNode = getNearestNode(s);
-        int nearestNodeDistance = ((Forgj)nearestNode.d).dist;
-        Node previousNode = ((Forgj)nearestNode.d).forgj;
-        visited[returnIndexOfNode(s)] = true;
-
-        if(visited[returnIndexOfNode(nearestNode)]){
-            return;
+        for (Node n:node) {
+            if(!nodeArrayList.contains(n)){
+                for (Kant k = n.kant1; k != null; k = k.neste) {
+                    forkort(n, (Vkant) k);
+                }
+            }
         }
-
-        totalDistance += nearestNodeDistance;
-        nodeDistances[returnIndexOfNode(nearestNode)] = totalDistance;
-        previousNodes[returnIndexOfNode(nearestNode)] = previousNode;
-
-        dijkstra(nearestNode);
-
-
-
     }
 
     public int returnIndexOfNode(Node nodeInput){
@@ -156,24 +164,6 @@ public class WeightedGraph {
         }
     }
 
-    public void printAlgorithm(int startNodeIndex){
-
-        System.out.print("Node || Forgjenger || Distanse\n");
-
-        for (int i = 0; i < node.length; i++) {
-            if(i != startNodeIndex){
-                if(returnIndexOfNode(previousNodes[i]) != -1){
-                    System.out.println(i + "    || " + returnIndexOfNode(previousNodes[i]) + "          || " + nodeDistances[i]);
-                }else{
-                    System.out.println(i + "    ||            || Cant reach");
-                }
-
-            }else{
-                System.out.println(i + "    || start      || 0");
-            }
-        }
-    }
-
     public static void main(String[] args) throws IOException {
         WeightedGraph graf = new WeightedGraph();
         String fileName = "vg5";
@@ -185,8 +175,14 @@ public class WeightedGraph {
 
         graf.printGraph();
         System.out.println();
+
         graf.dijkstra(graf.node[startNodeIndex]);
-        graf.printAlgorithm(startNodeIndex);
+
+        System.out.println();
+        System.out.println();
+        for (Node n: graf.node) {
+            System.out.println(graf.returnIndexOfNode(n) + " " + graf.returnIndexOfNode(((Forgj)n.d).forgj) + " " + ((Forgj)n.d).dist);
+        }
 
     }
 
