@@ -1,16 +1,17 @@
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
-import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
 public class WeightedGraph {
 
+    int totalDistance = 0;
 
     int N,K;
     Node []node;
+    int[] nodeDistances;
+    Node[] previousNodes;
+    boolean[] visited;
 
     class Kant{
         Kant neste;
@@ -51,8 +52,14 @@ public class WeightedGraph {
 
         N = Integer.parseInt(st.nextToken());
         node = new Node[N];
+
+        nodeDistances = new int[N];
+        visited = new boolean[N];
+        previousNodes = new Node[N];
+
         for (int i = 0; i < N; ++i) {
             node[i] = new Node();
+            nodeDistances[i] = Forgj.uendelig;
         }
 
         K = Integer.parseInt(st.nextToken());
@@ -81,26 +88,46 @@ public class WeightedGraph {
         ((Forgj)s.d).dist = 0;
     }
 
-    //TODO: Add functionality
-    public void lag_priko(Node[] pri){
-
-    }
-
-    //TODO: Add functionality
-    public Node hent_min(int i, Node[] pri){
-        return null;
-    }
-
-    void dijkstra(Node s){
-        initforgj(s);
-        Node []pri = new Node[N];
-        lag_priko(pri);
-        for (int i = N; i > 1; --i) {
-            Node n = hent_min(i,pri);
-            for (Vkant k = (Vkant)n.kant1 ;  k != null; k = k.neste) {
-                forkort(n,k);
+    Node getNearestNode(Node s){
+        int minDist = Forgj.uendelig;
+        Node nearestNode = s;
+        for (Node n: node) {
+            if(n != s){
+                if(((Forgj)n.d).dist < minDist){
+                    minDist = ((Forgj)n.d).dist;
+                    nearestNode = n;
+                }
             }
         }
+        return nearestNode;
+    }
+
+
+    void dijkstra(Node s){
+
+        initforgj(s);
+        visited[returnIndexOfNode(s)] = true;
+
+        for (Kant k = s.kant1; k != null; k = k.neste) {
+                forkort(s,(Vkant) k);
+        }
+
+        Node nearestNode = getNearestNode(s);
+        int nearestNodeDistance = ((Forgj)nearestNode.d).dist;
+        Node previousNode = ((Forgj)nearestNode.d).forgj;
+
+        if(nearestNodeDistance == 0){
+            return;
+        }
+
+        totalDistance += nearestNodeDistance;
+        nodeDistances[returnIndexOfNode(nearestNode)] = totalDistance;
+        previousNodes[returnIndexOfNode(nearestNode)] = previousNode;
+
+        dijkstra(nearestNode);
+
+
+
     }
 
     public int returnIndexOfNode(Node nodeInput){
@@ -124,7 +151,25 @@ public class WeightedGraph {
                 tempKant = tempKant.neste;
             }
 
-            System.out.println(" ");
+            System.out.println();
+        }
+    }
+
+    public void printAlgorithm(int startNodeIndex){
+
+        System.out.print("Node || Forgjenger || Distanse\n");
+
+        for (int i = 0; i < node.length; i++) {
+            if(i != startNodeIndex){
+                if(returnIndexOfNode(previousNodes[i]) != -1){
+                    System.out.println(i + "    || " + returnIndexOfNode(previousNodes[i]) + "          || " + nodeDistances[i]);
+                }else{
+                    System.out.println(i + "    ||            || Cant reach");
+                }
+
+            }else{
+                System.out.println(i + "    || start      || 0");
+            }
         }
     }
 
@@ -132,10 +177,17 @@ public class WeightedGraph {
         WeightedGraph graf = new WeightedGraph();
         String fileName = "vg1";
 
+        int startNodeIndex = 0;
+
         BufferedReader br = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + fileName + ".txt"));
         graf.ny_vgraf(br);
 
         graf.printGraph();
+        System.out.println();
+        graf.dijkstra(graf.node[startNodeIndex]);
+        graf.printAlgorithm(startNodeIndex);
+
+
 
     }
 
