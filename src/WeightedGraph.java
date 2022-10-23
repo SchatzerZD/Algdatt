@@ -62,7 +62,7 @@ public class WeightedGraph {
             int til = Integer.parseInt(st.nextToken());
             int vekt = Integer.parseInt(st.nextToken());
             Vkant k = new Vkant(node[til],(Vkant)node[fra].kant1, vekt);
-            node[fra].kant1 = k;
+            node[fra].kant1 = (Vkant)k;
         }
     }
 
@@ -101,6 +101,22 @@ public class WeightedGraph {
         return -1;
     }
 
+    public void printGraph(){
+        for (int i = 0; i < node.length; i++) {
+            System.out.print(i);
+
+            Kant tempKant = node[i].kant1;
+
+            while(tempKant != null){
+                Vkant vTempKant = (Vkant) tempKant;
+                System.out.print(" " + returnIndexOfNode(tempKant.til) + "(" + vTempKant.vekt + ")");
+                tempKant = tempKant.neste;
+            }
+
+            System.out.println(" ");
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         WeightedGraph graf = new WeightedGraph();
         String fileName = "vg1";
@@ -108,13 +124,7 @@ public class WeightedGraph {
         BufferedReader br = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + fileName + ".txt"));
         graf.ny_vgraf(br);
 
-        for (int i = 0; i < graf.node.length; i++) {
-
-        }
-
-
-
-
+        graf.printGraph();
 
     }
 
