@@ -106,7 +106,7 @@ public class WeightedGraph {
     void dijkstra(Node s){
 
         initforgj(s);
-        visited[returnIndexOfNode(s)] = true;
+
 
         for (Kant k = s.kant1; k != null; k = k.neste) {
                 forkort(s,(Vkant) k);
@@ -115,10 +115,14 @@ public class WeightedGraph {
         Node nearestNode = getNearestNode(s);
         int nearestNodeDistance = ((Forgj)nearestNode.d).dist;
         Node previousNode = ((Forgj)nearestNode.d).forgj;
+        visited[returnIndexOfNode(s)] = true;
 
-        if(nearestNodeDistance == 0){
+        if(visited[returnIndexOfNode(nearestNode)]){
             return;
         }
+
+
+        System.out.println(returnIndexOfNode(nearestNode) + " " + returnIndexOfNode(previousNode));
 
         totalDistance += nearestNodeDistance;
         nodeDistances[returnIndexOfNode(nearestNode)] = totalDistance;
@@ -175,9 +179,9 @@ public class WeightedGraph {
 
     public static void main(String[] args) throws IOException {
         WeightedGraph graf = new WeightedGraph();
-        String fileName = "vg1";
+        String fileName = "vg5";
 
-        int startNodeIndex = 0;
+        int startNodeIndex = 1;
 
         BufferedReader br = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + fileName + ".txt"));
         graf.ny_vgraf(br);
@@ -186,8 +190,6 @@ public class WeightedGraph {
         System.out.println();
         graf.dijkstra(graf.node[startNodeIndex]);
         graf.printAlgorithm(startNodeIndex);
-
-
 
     }
 
