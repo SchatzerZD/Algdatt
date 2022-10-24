@@ -16,19 +16,10 @@ public class WeightedGraph {
         }
     }
 
-    class Node implements Comparable<Node>{
+    class Node{
         Kant kant1;
         Object d;
 
-        @Override
-        public int compareTo(Node o) {
-            if(((Vkant)o.kant1).vekt < ((Vkant)kant1).vekt){
-                return 1;
-            }
-            else{
-                return -1;
-            }
-        }
     }
 
     class Vkant extends Kant{
@@ -163,7 +154,7 @@ public class WeightedGraph {
 
     public static void main(String[] args) throws IOException {
         WeightedGraph graf = new WeightedGraph();
-        String fileName = "vg1";
+        String fileName = "vg2";
 
         int startNodeIndex = 1;
 
