@@ -7,10 +7,6 @@ import java.util.*;
 public class WeightedGraph {
     int N,K;
     Node []node;
-    boolean[] addedList;
-    int iterator;
-
-    ArrayList<Node> visitedNodes = new ArrayList<>();
 
     class Kant{
         Kant neste;
@@ -21,9 +17,19 @@ public class WeightedGraph {
         }
     }
 
-    class Node {
+    class Node implements Comparable<Node>{
         Kant kant1;
         Object d;
+
+        @Override
+        public int compareTo(Node o) {
+            if(((Vkant)o.kant1).vekt < ((Vkant)kant1).vekt){
+                return 1;
+            }
+            else{
+                return -1;
+            }
+        }
     }
 
     class Vkant extends Kant{
@@ -51,8 +57,6 @@ public class WeightedGraph {
 
         N = Integer.parseInt(st.nextToken());
         node = new Node[N];
-        addedList = new boolean[N];
-
         for (int i = 0; i < N; ++i) {
             node[i] = new Node();
         }
@@ -83,57 +87,61 @@ public class WeightedGraph {
         ((Forgj)s.d).dist = 0;
     }
 
-    Node getMin(Node s){
-        Node nearestNode = null;
+    List<Node> getAdjacentNodes(Node n){
+        List<Node> returnList = new ArrayList<>();
+        for (Kant k = n.kant1; k != null; k = k.neste) {
+                returnList.add(k.til);
+        }
+        return returnList;
+    }
+
+    Node getLowestWeightNode(Node s){
         int distance = Forgj.uendelig;
-        for (Kant k = s.kant1; k != null; k = k.neste) {
-            if(distance > ((Vkant)k).vekt && !visitedNodes.contains(nearestNode)){
-                distance = ((Vkant)k).vekt;
-                nearestNode = k.til;
+        Node smallestNode = null;
+
+        Kant tempKant = s.kant1;
+
+        while(tempKant != null){
+            Vkant vTempKant = (Vkant) tempKant;
+            if(vTempKant.vekt < distance){
+                distance = vTempKant.vekt;
+                smallestNode = vTempKant.til;
             }
+            tempKant = tempKant.neste;
         }
 
-        if(nearestNode != null && !visitedNodes.contains(nearestNode)){
-            visitedNodes.add(nearestNode);
-        }
-
-        return nearestNode;
+        return smallestNode;
     }
 
-    void lag_priko(Node s, List<Node> pri){
-
-        for (Kant k = s.kant1; k != null; k = k.neste) {
-            if(getMin(s) != null){
-                pri.add(getMin(s));
-                lag_priko(getMin(s), pri);
-            }else{
-                return;
-            }
-        }
-    }
 
     void dijkstra(Node s){
         initforgj(s);
-        ArrayList<Node> pri = new ArrayList<>();
-        pri.add(s);
-        lag_priko(s, pri);
+        Node currentNode = s;
+        ArrayList<Node> pQueue = new ArrayList<>();
+        pQueue.add(currentNode);
+        ArrayList<Node> visited = new ArrayList<>();
+        int i = 0;
 
-        for (Node n: pri) {
-            System.out.print(returnIndexOfNode(n) + " ");
-        }
-        System.out.println();
-        for (Node n: visitedNodes) {
-            System.out.print(returnIndexOfNode(n) + " ");
-        }
-
-        for (int i = 0; i < pri.size(); i++) {
-            Node n = pri.get(i);
-            if(n != null){
-                for (Kant k = n.kant1; k != null; k = k.neste) {
-                    forkort(n, (Vkant) k);
-                }
+        while(!pQueue.isEmpty()){
+            i++;
+            if(visited.size() == N || i >= K * 2){
+                break;
             }
 
+            for (Node n: getAdjacentNodes(currentNode)) {
+                pQueue.add(n);
+                pQueue.remove(currentNode);
+            }
+            for (Kant k = currentNode.kant1; k != null; k = k.neste) {
+                forkort(currentNode,(Vkant) k);
+            }
+            if(!visited.contains(currentNode)){
+                visited.add(currentNode);
+            }
+            currentNode = getLowestWeightNode(currentNode);
+            if(currentNode == null){
+                currentNode = pQueue.get(0);
+            }
         }
 
     }
@@ -179,9 +187,13 @@ public class WeightedGraph {
 
         System.out.println();
         System.out.println();
+
         for (Node n: graf.node) {
-            System.out.println(graf.returnIndexOfNode(n) + " " + graf.returnIndexOfNode(((Forgj)n.d).forgj) + " " + ((Forgj)n.d).dist);
+            System.out.println(graf.returnIndexOfNode(n) + " || " + graf.returnIndexOfNode(((Forgj)n.d).forgj) + " || " + ((Forgj)n.d).dist);
         }
+
+
+
 
     }
 
