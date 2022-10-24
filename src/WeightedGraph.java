@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.security.KeyStore;
 import java.util.*;
 
 public class WeightedGraph {
@@ -95,52 +96,55 @@ public class WeightedGraph {
         return returnList;
     }
 
-    Node getLowestWeightNode(Node s){
-        int distance = Forgj.uendelig;
-        Node smallestNode = null;
+    Node getLowestWeightNode(HashMap<Node,Integer> map){
 
-        Kant tempKant = s.kant1;
+        List<Map.Entry<Node, Integer>> list = new LinkedList<>(map.entrySet());
+        Collections.sort(list, Map.Entry.comparingByValue());
 
-        while(tempKant != null){
-            Vkant vTempKant = (Vkant) tempKant;
-            if(vTempKant.vekt < distance){
-                distance = vTempKant.vekt;
-                smallestNode = vTempKant.til;
-            }
-            tempKant = tempKant.neste;
-        }
-
-        return smallestNode;
+        return list.get(0).getKey();
     }
 
 
     void dijkstra(Node s){
         initforgj(s);
         Node currentNode = s;
-        ArrayList<Node> pQueue = new ArrayList<>();
-        pQueue.add(currentNode);
+        HashMap<Node, Integer> prioQueue = new HashMap<>();
+        prioQueue.put(currentNode,0);
         ArrayList<Node> visited = new ArrayList<>();
-        int i = 0;
+        ArrayList<Node> unobtainable = new ArrayList<>();
 
-        while(!pQueue.isEmpty()){
-            i++;
-            if(visited.size() == N || i >= K * 2){
-                break;
-            }
+        while(!prioQueue.isEmpty()){
 
-            for (Node n: getAdjacentNodes(currentNode)) {
-                pQueue.add(n);
-                pQueue.remove(currentNode);
+
+            Kant tempKant = currentNode.kant1;
+            while(tempKant != null){
+                Vkant vTempKant = (Vkant) tempKant;
+                if(!unobtainable.contains(tempKant.til)){
+                    prioQueue.put(tempKant.til, vTempKant.vekt);
+                }
+                tempKant = tempKant.neste;
             }
-            for (Kant k = currentNode.kant1; k != null; k = k.neste) {
-                forkort(currentNode,(Vkant) k);
-            }
+            prioQueue.remove(currentNode);
             if(!visited.contains(currentNode)){
                 visited.add(currentNode);
             }
-            currentNode = getLowestWeightNode(currentNode);
-            if(currentNode == null){
-                currentNode = pQueue.get(0);
+            prioQueue.forEach((key,value) -> System.out.println(returnIndexOfNode(key) + " : " + value));
+            visited.forEach((node1 -> System.out.println(returnIndexOfNode(node1))));
+            System.out.println();
+
+            if(!prioQueue.isEmpty() && visited.contains(getLowestWeightNode(prioQueue))){
+                unobtainable.add(getLowestWeightNode(prioQueue));
+                prioQueue.remove(getLowestWeightNode(prioQueue));
+            }
+
+            if(!prioQueue.isEmpty()){
+                currentNode = getLowestWeightNode(prioQueue);
+            }
+        }
+
+        for (Node n: visited) {
+            for (Kant k = n.kant1; k != null; k = k.neste) {
+                forkort(n,(Vkant) k);
             }
         }
 
