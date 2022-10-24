@@ -89,7 +89,7 @@ public class WeightedGraph {
     Node getLowestWeightNode(HashMap<Node,Integer> map){
 
         List<Map.Entry<Node, Integer>> list = new LinkedList<>(map.entrySet());
-        Collections.sort(list, Map.Entry.comparingByValue());
+        list.sort(Map.Entry.comparingByValue());
 
         return list.get(0).getKey();
     }
@@ -163,7 +163,7 @@ public class WeightedGraph {
 
     public static void main(String[] args) throws IOException {
         WeightedGraph graf = new WeightedGraph();
-        String fileName = "vg5";
+        String fileName = "vg1";
 
         int startNodeIndex = 1;
 
