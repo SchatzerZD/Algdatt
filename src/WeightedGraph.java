@@ -1,8 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.security.KeyStore;
 import java.util.*;
 
 public class WeightedGraph {
@@ -88,14 +86,6 @@ public class WeightedGraph {
         ((Forgj)s.d).dist = 0;
     }
 
-    List<Node> getAdjacentNodes(Node n){
-        List<Node> returnList = new ArrayList<>();
-        for (Kant k = n.kant1; k != null; k = k.neste) {
-                returnList.add(k.til);
-        }
-        return returnList;
-    }
-
     Node getLowestWeightNode(HashMap<Node,Integer> map){
 
         List<Map.Entry<Node, Integer>> list = new LinkedList<>(map.entrySet());
@@ -115,7 +105,6 @@ public class WeightedGraph {
 
         while(!prioQueue.isEmpty()){
 
-
             Kant tempKant = currentNode.kant1;
             while(tempKant != null){
                 Vkant vTempKant = (Vkant) tempKant;
@@ -128,9 +117,6 @@ public class WeightedGraph {
             if(!visited.contains(currentNode)){
                 visited.add(currentNode);
             }
-            prioQueue.forEach((key,value) -> System.out.println(returnIndexOfNode(key) + " : " + value));
-            visited.forEach((node1 -> System.out.println(returnIndexOfNode(node1))));
-            System.out.println();
 
             if(!prioQueue.isEmpty() && visited.contains(getLowestWeightNode(prioQueue))){
                 unobtainable.add(getLowestWeightNode(prioQueue));
@@ -177,7 +163,7 @@ public class WeightedGraph {
 
     public static void main(String[] args) throws IOException {
         WeightedGraph graf = new WeightedGraph();
-        String fileName = "vg2";
+        String fileName = "vg5";
 
         int startNodeIndex = 1;
 
@@ -191,12 +177,24 @@ public class WeightedGraph {
 
         System.out.println();
         System.out.println();
-
+        System.out.println("Node  || Previous || Distance");
         for (Node n: graf.node) {
-            System.out.println(graf.returnIndexOfNode(n) + " || " + graf.returnIndexOfNode(((Forgj)n.d).forgj) + " || " + ((Forgj)n.d).dist);
+            System.out.print(String.format("%-2s",graf.returnIndexOfNode(n)) + "    || ");
+            if(graf.returnIndexOfNode(((Forgj)n.d).forgj) == -1 && graf.returnIndexOfNode(n) != startNodeIndex){
+                System.out.print(String.format("%5s"," "));
+            }else if(graf.returnIndexOfNode(((Forgj)n.d).forgj) == -1 && graf.returnIndexOfNode(n) == startNodeIndex){
+                System.out.print(String.format("%-5s","start"));
+            }else{
+                System.out.print(String.format("%5s",graf.returnIndexOfNode(((Forgj)n.d).forgj)));
+            }
+            System.out.print("    || ");
+            if(((Forgj)n.d).dist == Forgj.uendelig){
+                System.out.print(" Cant Reach");
+            }else{
+                System.out.print(((Forgj)n.d).dist);
+            }
+            System.out.println();
         }
-
-
 
 
     }
