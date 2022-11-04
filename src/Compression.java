@@ -111,7 +111,7 @@ public class Compression {
 
     }
 
-     public void writeToFile(List<Integer> results){
+     static void writeToFile(List<Integer> results){
             try {
                 FileWriter myWriter = new FileWriter("Compressed_LZ.txt");
                 for (int i: results) {
@@ -128,7 +128,6 @@ public class Compression {
 
     public static void main(String[] args) throws IOException {
         String filename = "compressTest.txt";
-        Compression compression = new Compression();
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
         System.out.println(contentFromFile);
@@ -169,7 +168,7 @@ public class Compression {
         System.out.println();
         System.out.println(intToString);
 
-        compression.writeToFile(result);
+        writeToFile(result);
     }
 
 
