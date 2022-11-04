@@ -69,7 +69,17 @@ public class Compression {
 
         static List<Integer> decompress(byte[] input){
 
+            List<List<Integer>> listOfIntegerSets = new ArrayList<>();
+            List<Integer> result = new ArrayList<>();
 
+
+            for (var i = 0; i < input.length; i++) {
+                int current = input[i];
+                List<Integer> tempList = new ArrayList<>();
+                tempList.add(current);
+
+
+            }
 
 
             return null;
