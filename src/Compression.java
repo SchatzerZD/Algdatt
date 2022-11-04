@@ -20,6 +20,7 @@ public class Compression {
                 List<Integer> tempList = new ArrayList<>();
                 tempList.add(current);
 
+                boolean inList = false;
                 int appends = 1;
                 while(i + appends < input.length){
                     tempList.add((int) input[i + appends]);
@@ -29,10 +30,13 @@ public class Compression {
                         break;
                     }else{
                         current = SIZE + listOfIntegerSets.indexOf(tempList);
-                        i++;
+                        inList = true;
                     }
 
                     appends++;
+                }
+                if(inList){
+                    i += appends -1;
                 }
 
                 result.add(current);
@@ -42,7 +46,7 @@ public class Compression {
             if(printBytes){
                 for (List<Integer> l: listOfIntegerSets) {
                     for (int i: l) {
-                        System.out.print(i + " ");
+                        System.out.print((char)i + " ");
                     }
                     System.out.println();
                 }
@@ -59,7 +63,7 @@ public class Compression {
         }
 
 
-        static List<Integer> decompress(List<Integer> input){
+        static List<Integer> decompress(List<Integer> input, boolean printBytes){
 
             List<List<Integer>> listOfIntegerSets = new ArrayList<>();
             List<Integer> result = new ArrayList<>();
@@ -81,10 +85,13 @@ public class Compression {
 
                 int appends = 1;
                 while(i + appends < input.size()){
-                    if(input.get(i + appends) >= 256){
+                    if(input.get(i + appends) >= 256 && input.get(i + appends) - 256 < listOfIntegerSets.size()){
                         int firstIndex = listOfIntegerSets.get(input.get(i + appends) - 256).get(0);
                         tempList.add(firstIndex);
-                    }else{
+                    }else if(input.get(i + appends) >= 256){
+                        int firstIndex = tempList.get(0);
+                        tempList.add(firstIndex);
+                    } else{
                         tempList.add(input.get(i + appends));
                     }
 
@@ -92,7 +99,6 @@ public class Compression {
                         listOfIntegerSets.add(tempList);
                         break;
                     }else{
-                        current = SIZE + listOfIntegerSets.indexOf(tempList);
                         i++;
                     }
 
@@ -100,8 +106,22 @@ public class Compression {
 
                 }
 
-                listOfIntegerSets.add(tempList);
+            }
 
+
+            if(printBytes){
+                for (List<Integer> l: listOfIntegerSets) {
+                    for (int i: l) {
+                        System.out.print(i + " ");
+                    }
+                    System.out.println();
+                }
+
+                System.out.println();
+                for (int i: result) {
+                    System.out.print(i + " ");
+                }
+                System.out.println();
             }
 
 
@@ -130,21 +150,18 @@ public class Compression {
         String filename = "compressTest.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
+        System.out.println("--------------------");
+        System.out.println("BEFORE COMPRESSION:");
+        System.out.println("--------------------");
         System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
-        boolean debugInfo = true;
+
+        boolean debugInfoCompress = false;
+        boolean debugInfoDecompress = false;
 
 
-        for (byte b: textToBytes) {
-            System.out.print(b + " ");
-        }
-        System.out.println();
-        System.out.println(contentFromFile);
-        System.out.println();
-
-
-        List<Integer> result = LZ.compress(textToBytes, debugInfo);
-        List<Integer> decompressed = LZ.decompress(result);
+        List<Integer> result = LZ.compress(textToBytes, debugInfoCompress);
+        List<Integer> decompressed = LZ.decompress(result, debugInfoDecompress);
 
 
         System.out.println();
@@ -154,18 +171,19 @@ public class Compression {
         System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
 
         System.out.println();
-        for (int i: decompressed) {
-            System.out.print(i + " ");
-        }
-        System.out.println();
         System.out.println("Decompressed size: " + decompressed.size());
         System.out.println();
+
         String intToString = "";
         for (int i: decompressed) {
             char c = (char)i;
             intToString += c;
         }
-        System.out.println();
+
+
+        System.out.println("--------------------");
+        System.out.println("AFTER DECOMPRESSION:");
+        System.out.println("--------------------");
         System.out.println(intToString);
 
         writeToFile(result);
