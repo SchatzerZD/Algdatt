@@ -1,5 +1,4 @@
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,6 +41,9 @@ public class Compression {
                 result.add(current);
             }
 
+            for (int i: result) {
+                System.out.print(i + " ");
+            }
 
             return result;
         }
@@ -97,13 +99,20 @@ public class Compression {
 
     }
 
-     static void writeToFile(List<Integer> results){
+        static void writeToFile(List<Integer> results, String filename){
             try {
-                FileWriter myWriter = new FileWriter("Compressed_LZ.txt");
+                DataOutputStream outFile = new DataOutputStream((new FileOutputStream(filename)));
+
                 for (int i: results) {
-                    myWriter.write(i + " ");
+                    if(i < 128 && i > -129){
+                        outFile.writeByte(i);
+                    }else{
+                        outFile.writeChar(i);
+                    }
                 }
-                myWriter.close();
+
+                outFile.flush();
+                outFile.close();
 
             } catch (IOException e) {
                 System.out.println("An error occurred.");
@@ -111,10 +120,39 @@ public class Compression {
             }
         }
 
+        static List<Integer> readIntegersFromFile(String filename){
+            List<Integer> resultList = new ArrayList<>();
+                try{
+                    DataInputStream inFile = new DataInputStream(new FileInputStream(filename));
+
+
+                    int i;
+                    while((i=inFile.read())!= -1){
+                        if(i==1){
+                            i = inFile.read();
+                            resultList.add(i+LZ.SIZE);
+                        }else if(i>Byte.MAX_VALUE){
+                            resultList.add(i-LZ.SIZE);
+                        }
+                        else{
+                            resultList.add(i);
+                        }
+                    }
+
+                }catch (IOException e){
+                    System.out.println("An error occurred.");
+                    e.printStackTrace();
+                }
+
+            return resultList;
+
+        }
+
 
     public static void main(String[] args) throws IOException {
+        String compressedFileName = "Compressed_LZ.txt";
         //READ TEXT DATA FOR COMPRESSION
-        String filename = "diverse.txt";
+        String filename = "compressTest.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
@@ -123,20 +161,15 @@ public class Compression {
         System.out.println("--------------------");
         System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
-        List<Integer> intFromCompressedFile = new ArrayList<>();
+
 
         // COMPRESSION, RESULT WRITTEN TO FILE
         List<Integer> result = LZ.compress(textToBytes);
-        writeToFile(result);
+        writeToFile(result,compressedFileName);
 
 
         //READ COMPRESSED FILE FOR DECOMPRESSION
-        String compressedFile = "Compressed_LZ.txt";
-        String compressedFileText = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + compressedFile));
-
-        for (String s: compressedFileText.split(" ")) {
-            intFromCompressedFile.add(Integer.parseInt(s));
-        }
+        List<Integer> intFromCompressedFile = readIntegersFromFile(filename);
 
 
         //DECOMPRESS COMPRESSED FILE DATA
@@ -160,7 +193,7 @@ public class Compression {
 
 
         //PRINTING OUT DECOMPRESSED RESULT AFTER CHARACTER CONVERSION
-        System.out.println("--------------------");
+        System.out.println("\n\n--------------------");
         System.out.println("AFTER DECOMPRESSION:");
         System.out.println("--------------------");
         System.out.println(intToString);
