@@ -137,11 +137,21 @@ public class Compression {
         System.out.println();
 
         String intToString = "";
-        for (int i: decompressed) {
-            char c = (char)i;
-            intToString += c;
-        }
 
+        for (int i: decompressed) {
+            if(i > -1){
+                char c = (char)i;
+                intToString += c;
+            }else if(i < -61){
+                switch (i) {
+                    case -90 -> intToString += "æ";
+                    case -72 -> intToString += "ø";
+                    case -91 -> intToString += "å";
+                }
+            }
+
+
+        }
 
         System.out.println("--------------------");
         System.out.println("AFTER DECOMPRESSION:");
