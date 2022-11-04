@@ -67,14 +67,19 @@ public class Compression {
         }
 
 
-        static List<Integer> decompress(byte[] input){
+        static List<Integer> decompress(List<Integer> input){
 
             List<List<Integer>> listOfIntegerSets = new ArrayList<>();
             List<Integer> result = new ArrayList<>();
 
 
-            for (var i = 0; i < input.length; i++) {
-                int current = input[i];
+            for (var i = 0; i < input.size(); i++) {
+                int current = input.get(i);
+
+                if(current >= LZ.SIZE){
+                    List<Integer> currentGroupOfInt = listOfIntegerSets.get(current-256);
+                }
+
                 List<Integer> tempList = new ArrayList<>();
                 tempList.add(current);
 
@@ -90,10 +95,11 @@ public class Compression {
 
 
     public static void main(String[] args) throws IOException {
-        String filename = "diverse.txt";
+        String filename = "compressTest.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
         System.out.println(contentFromFile);
+        System.out.println();
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
         List<Integer> result = LZ.compress(textToBytes, true);
