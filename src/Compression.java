@@ -1,5 +1,8 @@
 import java.awt.*;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,10 +71,12 @@ public class Compression {
     }
 
 
-    public static void main(String[] args) {
-        String test = "Her er en tekst som er veldig repeterende med mange eer fordi e er en vanlig bokstav";
-        System.out.println(test);
-        byte[] textToBytes = test.getBytes(StandardCharsets.UTF_8);
+    public static void main(String[] args) throws IOException {
+        String filename = "diverse.txt";
+        String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
+
+        System.out.println(contentFromFile);
+        byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
         System.out.println(textToBytes.length);
         System.out.println();
 
