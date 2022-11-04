@@ -104,7 +104,7 @@ public class Compression {
             }
 
 
-            return null;
+            return result;
         }
 
 
