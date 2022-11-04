@@ -77,14 +77,6 @@ public class Compression {
 
         System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
-        System.out.println(textToBytes.length);
-        System.out.println();
-
-        for (byte b: textToBytes) {
-            System.out.print(b + " ");
-        }
-        System.out.println();
-
 
         List<Integer> result = LZ.compress(textToBytes, true);
 
@@ -93,7 +85,7 @@ public class Compression {
         System.out.println();
         System.out.println("Original size: " + textToBytes.length);
         System.out.println("Compressed size: " + result.size());
-        System.out.println("Compress ratio: " + (double)result.size()/(double)textToBytes.length);
+        System.out.println("Compress ratio: " + (1 - (double)result.size()/(double)textToBytes.length));
 
     }
 
