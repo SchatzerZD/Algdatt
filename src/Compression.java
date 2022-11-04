@@ -8,16 +8,13 @@ public class Compression {
 
 
     static class LZ{
-
-        static int[] compress(byte[] input){
+        static List<Integer> compress(byte[] input, boolean printBytes){
 
             int size = 256;
-
             List<List<Integer>> listOfByteSet = new ArrayList<>();
             List<Integer> result = new ArrayList<>();
 
             for (var i = 0; i < input.length; i++) {
-
                 int current = input[i];
                 List<Integer> tempList = new ArrayList<>();
                 tempList.add(current);
@@ -31,6 +28,7 @@ public class Compression {
                         break;
                     }else{
                         int count = 0;
+
                         for (List<Integer> l: listOfByteSet) {
                             if(l.equals(tempList)){
                                 break;
@@ -46,32 +44,27 @@ public class Compression {
                 }
 
                 result.add(current);
-
-
             }
 
+            //Temporary printing
+            if(printBytes){
+                for (List<Integer> l: listOfByteSet) {
+                    for (int i: l) {
+                        System.out.print(i + " ");
+                    }
+                    System.out.println();
+                }
 
-            for (List<Integer> l: listOfByteSet) {
-                for (int i: l) {
+                System.out.println();
+                for (int i: result) {
                     System.out.print(i + " ");
                 }
                 System.out.println();
             }
 
-            System.out.println();
-            for (int i: result) {
-                System.out.print(i + " ");
-            }
-            System.out.println();
-            System.out.println(input.length);
-            System.out.println(result.size());
 
-
-
-            return null;
+            return result;
         }
-
-
     }
 
 
@@ -87,7 +80,15 @@ public class Compression {
         }
         System.out.println();
 
-        LZ.compress(textToBytes);
+
+        List<Integer> result = LZ.compress(textToBytes, true);
+
+
+        System.out.println();
+        System.out.println();
+        System.out.println("Original size: " + textToBytes.length);
+        System.out.println("Compressed size: " + result.size());
+        System.out.println("Compress ratio: " + (double)result.size()/(double)textToBytes.length);
 
     }
 
