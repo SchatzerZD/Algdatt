@@ -118,6 +118,7 @@ public class Compression {
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
         boolean debugInfo = true;
 
+
         for (byte b: textToBytes) {
             System.out.print(b + " ");
         }
@@ -140,6 +141,16 @@ public class Compression {
         for (int i: decompressed) {
             System.out.print(i + " ");
         }
+        System.out.println();
+        System.out.println("Decompressed size: " + decompressed.size());
+        System.out.println();
+        String intToString = "";
+        for (int i: decompressed) {
+            char c = (char)i;
+            intToString += c;
+        }
+        System.out.println();
+        System.out.println(intToString);
 
     }
 
