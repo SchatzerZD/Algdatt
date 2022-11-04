@@ -10,7 +10,7 @@ public class Compression {
 
     static class LZ{
         static final int SIZE = 256;
-        static List<Integer> compress(byte[] input, boolean printBytes){
+        static List<Integer> compress(byte[] input){
 
             List<List<Integer>> listOfIntegerSets = new ArrayList<>();
             List<Integer> result = new ArrayList<>();
@@ -42,28 +42,12 @@ public class Compression {
                 result.add(current);
             }
 
-            //Temporary printing
-            if(printBytes){
-                for (List<Integer> l: listOfIntegerSets) {
-                    for (int i: l) {
-                        System.out.print((char)i + " ");
-                    }
-                    System.out.println();
-                }
-
-                System.out.println();
-                for (int i: result) {
-                    System.out.print(i + " ");
-                }
-                System.out.println();
-            }
-
 
             return result;
         }
 
 
-        static List<Integer> decompress(List<Integer> input, boolean printBytes){
+        static List<Integer> decompress(List<Integer> input){
 
             List<List<Integer>> listOfIntegerSets = new ArrayList<>();
             List<Integer> result = new ArrayList<>();
@@ -98,30 +82,12 @@ public class Compression {
                     if(!listOfIntegerSets.contains(tempList)){
                         listOfIntegerSets.add(tempList);
                         break;
-                    }else{
-                        i++;
                     }
 
                     appends++;
 
                 }
 
-            }
-
-
-            if(printBytes){
-                for (List<Integer> l: listOfIntegerSets) {
-                    for (int i: l) {
-                        System.out.print(i + " ");
-                    }
-                    System.out.println();
-                }
-
-                System.out.println();
-                for (int i: result) {
-                    System.out.print(i + " ");
-                }
-                System.out.println();
             }
 
 
@@ -156,12 +122,8 @@ public class Compression {
         System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
-        boolean debugInfoCompress = false;
-        boolean debugInfoDecompress = false;
-
-
-        List<Integer> result = LZ.compress(textToBytes, debugInfoCompress);
-        List<Integer> decompressed = LZ.decompress(result, debugInfoDecompress);
+        List<Integer> result = LZ.compress(textToBytes);
+        List<Integer> decompressed = LZ.decompress(result);
 
 
         System.out.println();
