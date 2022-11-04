@@ -68,9 +68,24 @@ public class Compression {
 
 
     }
+    
+     public void writeToFile(List<Integer> results){
+            try {
+                FileWriter myWriter = new FileWriter("Compressed_LZ.txt");
+                for (int i: results) {
+                    myWriter.write(i + " ");
+                }
+                myWriter.close();
+
+            } catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
+        }
 
 
     public static void main(String[] args) throws IOException {
+         Compression compression = new Compression();
         String filename = "diverse.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
@@ -86,6 +101,7 @@ public class Compression {
         System.out.println("Compressed size: " + result.size());
         System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
 
+        compression.writeToFile(result);
     }
 
 
