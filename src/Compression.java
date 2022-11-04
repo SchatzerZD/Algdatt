@@ -110,11 +110,27 @@ public class Compression {
 
     }
 
+     public void writeToFile(List<Integer> results){
+            try {
+                FileWriter myWriter = new FileWriter("Compressed_LZ.txt");
+                for (int i: results) {
+                    myWriter.write(i + " ");
+                }
+                myWriter.close();
+
+            } catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
+        }
+
 
     public static void main(String[] args) throws IOException {
         String filename = "compressTest.txt";
+        Compression compression = new Compression();
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
+        System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
         boolean debugInfo = true;
 
@@ -152,6 +168,7 @@ public class Compression {
         System.out.println();
         System.out.println(intToString);
 
+        compression.writeToFile(result);
     }
 
 
