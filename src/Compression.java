@@ -1,4 +1,3 @@
-import java.awt.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -8,13 +7,11 @@ import java.util.List;
 
 public class Compression {
 
-
-
     static class LZ{
+        static final int SIZE = 256;
         static List<Integer> compress(byte[] input, boolean printBytes){
 
-            int size = 256;
-            List<List<Integer>> listOfByteSet = new ArrayList<>();
+            List<List<Integer>> listOfIntegerSets = new ArrayList<>();
             List<Integer> result = new ArrayList<>();
 
             for (var i = 0; i < input.length; i++) {
@@ -26,20 +23,20 @@ public class Compression {
                 while(i + appends < input.length){
                     tempList.add((int) input[i + appends]);
 
-                    if(!listOfByteSet.contains(tempList)){
-                        listOfByteSet.add(tempList);
+                    if(!listOfIntegerSets.contains(tempList)){
+                        listOfIntegerSets.add(tempList);
                         break;
                     }else{
                         int count = 0;
 
-                        for (List<Integer> l: listOfByteSet) {
+                        for (List<Integer> l: listOfIntegerSets) {
                             if(l.equals(tempList)){
                                 break;
                             }
                             count++;
                         }
 
-                        current = size + count;
+                        current = SIZE + count;
                         i++;
                     }
 
@@ -51,7 +48,7 @@ public class Compression {
 
             //Temporary printing
             if(printBytes){
-                for (List<Integer> l: listOfByteSet) {
+                for (List<Integer> l: listOfIntegerSets) {
                     for (int i: l) {
                         System.out.print(i + " ");
                     }
@@ -68,6 +65,8 @@ public class Compression {
 
             return result;
         }
+
+
     }
 
 
@@ -85,7 +84,7 @@ public class Compression {
         System.out.println();
         System.out.println("Original size: " + textToBytes.length);
         System.out.println("Compressed size: " + result.size());
-        System.out.println("Compress ratio: " + (1 - (double)result.size()/(double)textToBytes.length));
+        System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
 
     }
 
