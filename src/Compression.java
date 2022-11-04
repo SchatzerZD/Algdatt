@@ -130,7 +130,7 @@ public class Compression {
         writeToFile(result);
 
 
-        //COMPRESSED FILE READ
+        //READ COMPRESSED FILE FOR DECOMPRESSION
         String compressedFile = "Compressed_LZ.txt";
         String compressedFileText = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + compressedFile));
 
@@ -138,17 +138,21 @@ public class Compression {
             intFromCompressedFile.add(Integer.parseInt(s));
         }
 
+
         //DECOMPRESS COMPRESSED FILE DATA
         List<Integer> decompressed = LZ.decompress(intFromCompressedFile);
 
+
+        //COMPRESSION RESULTS PRINTED OUT
         System.out.println("\n\nOriginal size: " + textToBytes.length);
         System.out.println("Compressed size: " + result.size());
         System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
 
         System.out.println("\nDecompressed size: " + decompressed.size() + "\n");
 
-        String intToString = "";
 
+        //CONVERTING DECOMPRESSED DATA INTO CHARACTERS
+        String intToString = "";
         for (int i: decompressed) {
             if(i > -1){
                 char c = (char)i;
@@ -162,6 +166,8 @@ public class Compression {
             }
         }
 
+
+        //PRINTING OUT DECOMPRESSED RESULT AFTER CHARACTER CONVERSION
         System.out.println("--------------------");
         System.out.println("AFTER DECOMPRESSION:");
         System.out.println("--------------------");
