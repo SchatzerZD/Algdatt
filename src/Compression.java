@@ -114,7 +114,7 @@ public class Compression {
 
     public static void main(String[] args) throws IOException {
         //READ TEXT DATA FOR COMPRESSION
-        String filename = "compressTest.txt";
+        String filename = "diverse.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
@@ -154,7 +154,7 @@ public class Compression {
         //CONVERTING DECOMPRESSED DATA INTO CHARACTERS
         String intToString = "";
         for (int i: decompressed) {
-            if(i > -1){
+            if(i > -61){
                 char c = (char)i;
                 intToString += c;
             }else if(i < -61){
