@@ -41,10 +41,6 @@ public class Compression {
                 result.add(current);
             }
 
-            for (int i: result) {
-                System.out.print(i + " ");
-            }
-
             return result;
         }
 
@@ -124,8 +120,6 @@ public class Compression {
             List<Integer> resultList = new ArrayList<>();
                 try{
                     DataInputStream inFile = new DataInputStream(new FileInputStream(filename));
-
-
                     int i;
                     while((i=inFile.read())!= -1){
                         if(i==1){
@@ -152,7 +146,7 @@ public class Compression {
     public static void main(String[] args) throws IOException {
         String compressedFileName = "Compressed_LZ.txt";
         //READ TEXT DATA FOR COMPRESSION
-        String filename = "compressTest.txt";
+        String filename = "diverse.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
