@@ -113,28 +113,39 @@ public class Compression {
 
 
     public static void main(String[] args) throws IOException {
+        //READ TEXT DATA FOR COMPRESSION
         String filename = "compressTest.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
+
 
         System.out.println("--------------------");
         System.out.println("BEFORE COMPRESSION:");
         System.out.println("--------------------");
         System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
+        List<Integer> intFromCompressedFile = new ArrayList<>();
 
+        // COMPRESSION, RESULT WRITTEN TO FILE
         List<Integer> result = LZ.compress(textToBytes);
-        List<Integer> decompressed = LZ.decompress(result);
+        writeToFile(result);
 
 
-        System.out.println();
-        System.out.println();
-        System.out.println("Original size: " + textToBytes.length);
+        //COMPRESSED FILE READ
+        String compressedFile = "Compressed_LZ.txt";
+        String compressedFileText = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + compressedFile));
+
+        for (String s: compressedFileText.split(" ")) {
+            intFromCompressedFile.add(Integer.parseInt(s));
+        }
+
+        //DECOMPRESS COMPRESSED FILE DATA
+        List<Integer> decompressed = LZ.decompress(intFromCompressedFile);
+
+        System.out.println("\n\nOriginal size: " + textToBytes.length);
         System.out.println("Compressed size: " + result.size());
         System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
 
-        System.out.println();
-        System.out.println("Decompressed size: " + decompressed.size());
-        System.out.println();
+        System.out.println("\nDecompressed size: " + decompressed.size() + "\n");
 
         String intToString = "";
 
@@ -149,8 +160,6 @@ public class Compression {
                     case -91 -> intToString += "å";
                 }
             }
-
-
         }
 
         System.out.println("--------------------");
@@ -158,7 +167,6 @@ public class Compression {
         System.out.println("--------------------");
         System.out.println(intToString);
 
-        writeToFile(result);
     }
 
 
