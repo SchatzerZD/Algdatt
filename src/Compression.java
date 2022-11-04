@@ -143,14 +143,6 @@ public class Compression {
         List<Integer> decompressed = LZ.decompress(intFromCompressedFile);
 
 
-        //COMPRESSION RESULTS PRINTED OUT
-        System.out.println("\n\nOriginal size: " + textToBytes.length);
-        System.out.println("Compressed size: " + result.size());
-        System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
-
-        System.out.println("\nDecompressed size: " + decompressed.size() + "\n");
-
-
         //CONVERTING DECOMPRESSED DATA INTO CHARACTERS
         String intToString = "";
         for (int i: decompressed) {
@@ -172,6 +164,14 @@ public class Compression {
         System.out.println("AFTER DECOMPRESSION:");
         System.out.println("--------------------");
         System.out.println(intToString);
+
+
+        //COMPRESSION RESULTS PRINTED OUT
+        System.out.println("\n\nOriginal size: " + textToBytes.length);
+        System.out.println("Compressed size: " + result.size());
+        System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
+
+        System.out.println("\nDecompressed size: " + decompressed.size() + "\n");
 
     }
 
