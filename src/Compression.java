@@ -41,10 +41,6 @@ public class Compression {
                 result.add(current);
             }
 
-            for (int i: result) {
-                System.out.print(i + " ");
-            }
-
             return result;
         }
 
