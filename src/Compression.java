@@ -33,7 +33,7 @@ public class Compression {
             return codeword;
         }
 
-        static void compress(byte[] input){
+        static byte[] compress(byte[] input){
 
             List<Boolean> inputToBits = bytesToBits(input);
             List<LZ> rows = new ArrayList<>();
@@ -76,6 +76,11 @@ public class Compression {
                 }
             }
 
+            byte[] codewordBytes = new byte[rows.size()];
+            for (int i = 0; i < codewordBytes.length; i++) {
+                codewordBytes[i] = booleanToByte(rows.get(i).codeword);
+            }
+
             for (LZ row: rows) {
                 printBits(row.dictLoc);
                 System.out.print("   ||   ");
@@ -86,6 +91,8 @@ public class Compression {
                 printBits(row.codeword);
                 System.out.println();
             }
+
+            return codewordBytes;
 
 
         }
@@ -173,16 +180,22 @@ public class Compression {
         }
     }
 
-    static void writeToFile(List<Integer> results, String filename){
+    static byte booleanToByte(boolean[] array) {
+        byte val = 0;
+        for (boolean b : array) {
+            val <<= 1;
+            if (b)
+                val |= 1;
+        }
+        return val;
+    }
+
+    static void writeToFile(byte[] byteInput, String filename){
         try {
             DataOutputStream outFile = new DataOutputStream((new FileOutputStream(filename)));
 
-            for (int i: results) {
-                if(i < 128 && i > -129){
-                    outFile.writeByte(i);
-                }else{
-                    outFile.writeChar(i);
-                }
+            for (byte b: byteInput) {
+                outFile.writeByte(b);
             }
 
             outFile.flush();
@@ -222,7 +235,7 @@ public class Compression {
 
 
     public static void main(String[] args) throws IOException {
-        String compressedFileName = "Compressed_LZ.txt";
+        String compressedFileName = "Compressed_LZ2.txt";
         //READ TEXT DATA FOR COMPRESSION
         String filename = "compressTest.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
@@ -242,16 +255,9 @@ public class Compression {
         }
         System.out.println();
 
-        byte[] bytes = new byte[]{3,7,4,9};
+        byte[] compressedBytes = LZ.compress(textToBytes);
+        writeToFile(compressedBytes,compressedFileName);
 
-        System.out.println();
-        List<Boolean> testBits = bytesToBits(bytes);
-        for (boolean b: testBits) {
-            System.out.print(b ? "1":"0");
-        }
-        System.out.println();
-        System.out.println();
-        LZ.compress(bytes);
 
         /*
         // COMPRESSION, RESULT WRITTEN TO FILE
