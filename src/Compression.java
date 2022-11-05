@@ -51,10 +51,21 @@ public class Compression {
                     row.content = tempBitList;
                     row.dictLoc = byteToBits((byte) dictIndex);
 
-                    byte dictIndexToByte = (byte) dictIndex;
-                    dictIndexToByte <<= 1;
+                    if(row.content.size() != 1){
+                        ArrayList<Boolean> prefix = new ArrayList<>();
+                        for (int j = 0; j < row.content.size()-1; j++) {
+                            prefix.add(row.content.get(j));
+                        }
+                        for (LZ checkRow: rows) {
+                            if(checkRow.content.equals(prefix)){
+                                for (int j = 1; j < checkRow.dictLoc.length; j++) {
+                                    row.codeword[j-1] = checkRow.dictLoc[j];
+                                }
+                                break;
+                            }
+                        }
+                    }
 
-                    System.arraycopy(byteToBits(dictIndexToByte), 0, row.codeword, 0, 7);
                     boolean leastSignificantBit = row.content.get(row.content.size()-1);
                     row.codeword[7] = leastSignificantBit;
 
@@ -65,10 +76,6 @@ public class Compression {
                 }
             }
 
-            System.out.println();
-            System.out.println(rows.size());
-            System.out.println();
-
             for (LZ row: rows) {
                 printBits(row.dictLoc);
                 System.out.print("   ||   ");
@@ -78,7 +85,6 @@ public class Compression {
                 System.out.print("   ||   ");
                 printBits(row.codeword);
                 System.out.println();
-
             }
 
 
