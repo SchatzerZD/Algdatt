@@ -215,14 +215,18 @@ public class Compression {
         }
 
 
-
         //COMPRESSION RESULTS PRINTED OUT
-        System.out.println("\n\nOriginal size: " + textToBytes.length);
-        System.out.println("Compressed size: " + compressedSize);
-        System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)compressedSize/(double)textToBytes.length)*100));
-
-        System.out.println("\nDecompressed size: " + decompressed.size());
-        System.out.println("Decompressed same as original: " + beforeCompressedEqualsAfterCompressed + "\n");
+        System.out.format("%-32s %s %2s %s","\n\n\n+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %16s","|Original size","|",textToBytes.length,"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %16s","|Compressed size","|",compressedSize,"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %15s","|Compress percentage achieved","|",String.format("%.2f%%",(1 - (double)compressedSize/(double)textToBytes.length)*100),"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %16s","|Decompressed size","|",decompressed.size(),"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %17s","|Decompressed same as original","|",beforeCompressedEqualsAfterCompressed,"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
 
     }
 
