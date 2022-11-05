@@ -148,7 +148,7 @@ public class Compression {
     public static void main(String[] args) throws IOException {
         String compressedFileName = "Compressed_LZ.txt";
         //READ TEXT DATA FOR COMPRESSION
-        String filename = "compressTest.txt";
+        String filename = "diverse.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
@@ -208,7 +208,7 @@ public class Compression {
         //CHECK IF DECOMPRESSED HASN'T LOST ANY DATA
         boolean beforeCompressedEqualsAfterCompressed = true;
         for (int i = 0; i < textToBytes.length; i++) {
-            if (!(textToBytes[i] == intToString.getBytes()[i])) {
+            if (!(textToBytes[i] == decompressed.get(i))) {
                 beforeCompressedEqualsAfterCompressed = false;
                 break;
             }
