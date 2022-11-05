@@ -39,7 +39,9 @@ public class Compression {
                 }
 
                 result.add(current);
+                System.out.print("Compressing [" + "#".repeat(i/(input.length/10)) + " ".repeat(10-(i/(input.length/10))) + "] " + String.format("%.2f%%",(((double)i/(double)input.length)*100)) + "\r");
             }
+            System.out.println("\nCompression Successful\n");
 
             return result;
         }
@@ -86,8 +88,10 @@ public class Compression {
 
                 }
 
+                System.out.print("Decompressing [" + "#".repeat(i/(input.size()/10)) + " ".repeat(10-(i/(input.size()/10))) + "] " + String.format("%.2f%%",(((double)i/(double)input.size())*100)) + "\r");
             }
 
+            System.out.println("\nDecompression Successful\n");
 
             return result;
         }
@@ -152,10 +156,10 @@ public class Compression {
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
-        System.out.println("--------------------");
+        /*System.out.println("--------------------");
         System.out.println("BEFORE COMPRESSION:");
         System.out.println("--------------------");
-        System.out.println(contentFromFile);
+        System.out.println(contentFromFile);*/
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
 
@@ -181,10 +185,10 @@ public class Compression {
 
 
         //PRINTING OUT DECOMPRESSED RESULT AFTER CHARACTER CONVERSION
-        System.out.println("\n\n--------------------");
+        /*System.out.println("\n\n--------------------");
         System.out.println("AFTER DECOMPRESSION:");
         System.out.println("--------------------");
-        System.out.println(decompressedString);
+        System.out.println(decompressedString);*/
 
 
         //COUNT NUMBER OF BYTES IN COMPRESSED FILE
