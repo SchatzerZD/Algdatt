@@ -87,15 +87,9 @@ public class Compression {
             }
 
             for (LZ row: rows) {
-                printBits(row.dictLoc);
-                System.out.print("   ||   ");
-                for (boolean b: row.content) {
-                    System.out.print(b ? "1":"0");
-                }
-                System.out.print("   ||   ");
-                printBits(row.codeword);
-                System.out.print("     " + row.getDictLocAsByte());
-                System.out.println();
+                StringBuilder contentString = new StringBuilder();
+                for (boolean b: row.content) {contentString.append(b ? "1":"0");}
+                System.out.printf("%16s %4s %16s %4s %32s",printBits(row.dictLoc),"||",contentString,"||",printBits(row.codeword) + "\n");
             }
 
             return codewordBytes;
@@ -180,10 +174,12 @@ public class Compression {
         return resultBits;
     }
 
-    static void printBits(boolean[] bits){
+    static String printBits(boolean[] bits){
+        StringBuilder returnString = new StringBuilder();
         for (boolean b: bits) {
-            System.out.print(b ? "1":"0");
+            returnString.append(b ? "1":"0");
         }
+        return String.valueOf(returnString);
     }
 
     static byte booleanToByte(boolean[] array) {
@@ -261,7 +257,7 @@ public class Compression {
         }
         System.out.println();
 
-        int[] compressedBytes = LZ.compress(textToBytes,4);
+        int[] compressedBytes = LZ.compress(textToBytes,1);
         for (int b: compressedBytes) {
             System.out.print(b + " ");
         }
