@@ -1,69 +1,80 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
-//Ikke diss oss
 public class CompressionHuff {
-String text;
 
-    public String readFromFile(File myObj){
+//TODO: leser inn fra fil, tar inn det som ikke er kompimert og gjør om til int, finner frekvens og lager prioriteskø
+// av prioritetskøen lager man huffmantre av huffman treet kan man gjøre om teksten til bitstrenger
+
+
+    public static List<Integer> readIntegersFromFile(String filename) {
+        List<Integer> resultList = new ArrayList<>();
         try {
-            Scanner myReader = new Scanner(myObj);
-            while (myReader.hasNextLine()) {
-                 text = myReader.nextLine();
+            DataInputStream inFile = new DataInputStream(new FileInputStream(filename));
 
+
+            int i;
+            while ((i = inFile.read()) != -1) {
+                if (i == 1) {
+                    i = inFile.read();
+                    resultList.add(i + Compression.LZ.SIZE);
+                } else if (i > Byte.MAX_VALUE) {
+                    resultList.add(i - Compression.LZ.SIZE);
+                } else {
+                    resultList.add(i);
+                }
             }
-            myReader.close();
-        } catch (FileNotFoundException e) {
+
+        } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
-        return text;
+
+        return resultList;
+
     }
 
-    //TODO: do we have to make it into int??
-    public static String[] split(String text){
-        return text.split(" ");
-    }
 
-    public void frequencyTable(String[] list) {
-        ArrayList<Integer> freqArray = new ArrayList<>();
+    //TODO: remove elements from list after counted sequence - for speed
+    public LinkedList<LinkedList<Integer>> frequencyTable(List<Integer> listAllInt) {
+        LinkedList<LinkedList<Integer>> freqArray = new LinkedList<>();
 
-        System.out.println(Arrays.toString(list));
+        List<Integer> listDistinct = listAllInt.stream().distinct().toList();
 
-        List<String> listofOptions = (List<String>) Arrays.asList(list);
-        List<String> listDistinct = listofOptions.stream().distinct().collect(Collectors.toList());
 
-        System.out.println(listDistinct);
-
-        for (int i = 0; i < listDistinct.size(); i++) {
+        for (Integer integer : listDistinct) {
             int frequency = 0;
 
-            for (int j = 0; j < list.length; j++) {
+            for (Integer value : listAllInt) {
 
-
-                if (Objects.equals(listDistinct.get(i), list[j])) {
+                if (Objects.equals(integer, value)) {
                     frequency++;
                 }
             }
-            freqArray.add(frequency);
+            LinkedList<Integer> charAndFrequency = new LinkedList<>();
+            charAndFrequency.add(integer);
+            charAndFrequency.add(frequency);
+
+            freqArray.add(charAndFrequency);
         }
-        System.out.println(freqArray);
 
-
+        return freqArray;
     }
 
-    public static void main(String[] args) throws IOException {
+
+        public static void main(String[] args) throws IOException {
         CompressionHuff compressionHuff = new CompressionHuff();
 
-        String filename = "Compressed_LZ";
+        String filename = "test.txt";
 
-        File myObj = new File(System.getProperty("user.dir") + System.getProperty("file.separator") + System.getProperty("file.separator") + filename + ".txt");
+        System.out.println(readIntegersFromFile(filename));
 
-        compressionHuff.frequencyTable(split(compressionHuff.readFromFile(myObj)));
+        System.out.println("----------------------");
+        System.out.println(compressionHuff.frequencyTable(readIntegersFromFile(filename)));
+
+
 
 
     }
 }
+
