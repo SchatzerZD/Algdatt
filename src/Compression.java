@@ -37,29 +37,47 @@ public class Compression {
 
             List<Boolean> inputToBits = bytesToBits(input);
             List<LZ> rows = new ArrayList<>();
+            List<ArrayList<Boolean>> contentList = new ArrayList<>();
 
             int dictIndex = 1;
 
+            ArrayList<Boolean> tempBitList = new ArrayList<>();
             for (int i = 0; i < inputToBits.size(); i++) {
 
-                ArrayList<Boolean> tempBitList = new ArrayList<>();
                 tempBitList.add(inputToBits.get(i));
 
-                LZ row = new LZ();
-                row.content = tempBitList;
-
-                boolean contentAlreadyInList = false;
-                for (LZ r: rows) {
-                    if(r.content.equals(tempBitList)) contentAlreadyInList = true;
-                }
-
-                if(!contentAlreadyInList) {
+                if(!contentList.contains(tempBitList)){
+                    LZ row = new LZ();
+                    row.content = tempBitList;
                     row.dictLoc = byteToBits((byte) dictIndex);
 
+                    byte dictIndexToByte = (byte) dictIndex;
+                    dictIndexToByte <<= 1;
 
+                    System.arraycopy(byteToBits(dictIndexToByte), 0, row.codeword, 0, 7);
+                    boolean leastSignificantBit = row.content.get(row.content.size()-1);
+                    row.codeword[7] = leastSignificantBit;
+
+                    dictIndex++;
                     rows.add(row);
+                    contentList.add(tempBitList);
+                    tempBitList = new ArrayList<>();
                 }
+            }
 
+            System.out.println();
+            System.out.println(rows.size());
+            System.out.println();
+
+            for (LZ row: rows) {
+                printBits(row.dictLoc);
+                System.out.print("   ||   ");
+                for (boolean b: row.content) {
+                    System.out.print(b ? "1":"0");
+                }
+                System.out.print("   ||   ");
+                printBits(row.codeword);
+                System.out.println();
 
             }
 
@@ -217,6 +235,17 @@ public class Compression {
             System.out.print(b ? "1":"0");
         }
         System.out.println();
+
+        byte[] bytes = new byte[]{3,7,4,9};
+
+        System.out.println();
+        List<Boolean> testBits = bytesToBits(bytes);
+        for (boolean b: testBits) {
+            System.out.print(b ? "1":"0");
+        }
+        System.out.println();
+        System.out.println();
+        LZ.compress(bytes);
 
         /*
         // COMPRESSION, RESULT WRITTEN TO FILE
