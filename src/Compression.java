@@ -33,7 +33,7 @@ public class Compression {
             return codeword;
         }
 
-        static byte[] compress(byte[] input){
+        static byte[] compress(byte[] input, int radix){
 
             List<Boolean> inputToBits = bytesToBits(input);
             List<LZ> rows = new ArrayList<>();
@@ -42,32 +42,36 @@ public class Compression {
             int dictIndex = 1;
 
             ArrayList<Boolean> tempBitList = new ArrayList<>();
-            for (int i = 0; i < inputToBits.size(); i++) {
+            for (int i = 0; i < inputToBits.size(); i += radix) {
 
-                tempBitList.add(inputToBits.get(i));
+                for (int j = 0; j < radix && i+j < inputToBits.size(); j++) {
+                    tempBitList.add(inputToBits.get(i+j));
+                }
+
 
                 if(!contentList.contains(tempBitList)){
                     LZ row = new LZ();
                     row.content = tempBitList;
                     row.dictLoc = byteToBits((byte) dictIndex);
 
-                    if(row.content.size() != 1){
+                    if(row.content.size() != radix){
                         ArrayList<Boolean> prefix = new ArrayList<>();
-                        for (int j = 0; j < row.content.size()-1; j++) {
+                        for (int j = 0; j < row.content.size()-radix; j++) {
                             prefix.add(row.content.get(j));
                         }
                         for (LZ checkRow: rows) {
                             if(checkRow.content.equals(prefix)){
-                                for (int j = 1; j < checkRow.dictLoc.length; j++) {
-                                    row.codeword[j-1] = checkRow.dictLoc[j];
+                                for (int j = radix; j < checkRow.dictLoc.length; j++) {
+                                    row.codeword[j-radix] = checkRow.dictLoc[j];
                                 }
                                 break;
                             }
                         }
                     }
-
-                    boolean leastSignificantBit = row.content.get(row.content.size()-1);
-                    row.codeword[7] = leastSignificantBit;
+                    for (int j = 0; j < radix; j++) {
+                        boolean leastSignificantBit = row.content.get(row.content.size()-1-j);
+                        row.codeword[7-j] = leastSignificantBit;
+                    }
 
                     dictIndex++;
                     rows.add(row);
@@ -195,7 +199,7 @@ public class Compression {
             DataOutputStream outFile = new DataOutputStream((new FileOutputStream(filename)));
 
             for (byte b: byteInput) {
-                outFile.writeByte(b);
+                outFile.write(b);
             }
 
             outFile.flush();
@@ -255,8 +259,14 @@ public class Compression {
         }
         System.out.println();
 
-        byte[] compressedBytes = LZ.compress(textToBytes);
+        byte[] compressedBytes = LZ.compress(textToBytes,1);
+        for (byte b: compressedBytes) {
+            System.out.print(b + " ");
+        }
+        System.out.println();
+        System.out.println(compressedBytes.length);
         writeToFile(compressedBytes,compressedFileName);
+
 
 
         /*
