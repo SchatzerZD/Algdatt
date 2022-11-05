@@ -200,6 +200,7 @@ public class Compression {
 
         System.out.println("\nDecompressed size: " + decompressed.size() + "\n");
 
+
     }
 
 
