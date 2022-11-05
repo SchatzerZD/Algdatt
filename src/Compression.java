@@ -205,12 +205,24 @@ public class Compression {
         }
 
 
+        //CHECK IF DECOMPRESSED HASN'T LOST ANY DATA
+        boolean beforeCompressedEqualsAfterCompressed = true;
+        for (int i = 0; i < textToBytes.length; i++) {
+            if (!(textToBytes[i] == intToString.getBytes()[i])) {
+                beforeCompressedEqualsAfterCompressed = false;
+                break;
+            }
+        }
+
+
+
         //COMPRESSION RESULTS PRINTED OUT
         System.out.println("\n\nOriginal size: " + textToBytes.length);
         System.out.println("Compressed size: " + compressedSize);
         System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)compressedSize/(double)textToBytes.length)*100));
 
-        System.out.println("\nDecompressed size: " + decompressed.size() + "\n");
+        System.out.println("\nDecompressed size: " + decompressed.size());
+        System.out.println("Decompressed same as original: " + beforeCompressedEqualsAfterCompressed + "\n");
 
     }
 
