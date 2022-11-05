@@ -33,39 +33,37 @@ public class Compression {
             return codeword;
         }
 
-        static List<Integer> compress(byte[] input){
+        static void compress(byte[] input){
 
-            List<List<Integer>> listOfIntegerSets = new ArrayList<>();
-            List<Integer> result = new ArrayList<>();
+            List<Boolean> inputToBits = bytesToBits(input);
+            List<LZ> rows = new ArrayList<>();
 
-            for (var i = 0; i < input.length; i++) {
-                int current = input[i];
-                List<Integer> tempList = new ArrayList<>();
-                tempList.add(current);
+            int dictIndex = 1;
 
-                boolean inList = false;
-                int appends = 1;
-                while(i + appends < input.length){
-                    tempList.add((int) input[i + appends]);
+            for (int i = 0; i < inputToBits.size(); i++) {
 
-                    if(!listOfIntegerSets.contains(tempList)){
-                        listOfIntegerSets.add(tempList);
-                        break;
-                    }else{
-                        current = SIZE + listOfIntegerSets.indexOf(tempList);
-                        inList = true;
-                    }
+                ArrayList<Boolean> tempBitList = new ArrayList<>();
+                tempBitList.add(inputToBits.get(i));
 
-                    appends++;
-                }
-                if(inList){
-                    i += appends -1;
+                LZ row = new LZ();
+                row.content = tempBitList;
+
+                boolean contentAlreadyInList = false;
+                for (LZ r: rows) {
+                    if(r.content.equals(tempBitList)) contentAlreadyInList = true;
                 }
 
-                result.add(current);
+                if(!contentAlreadyInList) {
+                    row.dictLoc = byteToBits((byte) dictIndex);
+
+
+                    rows.add(row);
+                }
+
+
             }
 
-            return result;
+
         }
 
 
@@ -133,6 +131,24 @@ public class Compression {
         return  resultBits;
     }
 
+    static boolean[] byteToBits(byte inputByte){
+        boolean[] resultBits = new boolean[8];
+
+        int value = inputByte;
+        for (int i = 0; i < 8; i++) {
+            resultBits[i] = ((value & 128) != 0);
+            value <<= 1;
+        }
+
+        return resultBits;
+    }
+
+    static void printBits(boolean[] bits){
+        for (boolean b: bits) {
+            System.out.print(b ? "1":"0");
+        }
+    }
+
     static void writeToFile(List<Integer> results, String filename){
         try {
             DataOutputStream outFile = new DataOutputStream((new FileOutputStream(filename)));
@@ -194,11 +210,15 @@ public class Compression {
         System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
+        System.out.println();
+
         List<Boolean> bits = bytesToBits(textToBytes);
         for (boolean b: bits) {
             System.out.print(b ? "1":"0");
         }
+        System.out.println();
 
+        /*
         // COMPRESSION, RESULT WRITTEN TO FILE
         List<Integer> result = LZ.compress(textToBytes);
         writeToFile(result,compressedFileName);
@@ -241,7 +261,7 @@ public class Compression {
         System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
 
         System.out.println("\nDecompressed size: " + decompressed.size() + "\n");
-
+*/
 
     }
 
