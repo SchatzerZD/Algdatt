@@ -172,30 +172,19 @@ public class Compression {
         List<Integer> decompressed = LZ.decompress(intFromCompressedFile);
 
 
-        //CONVERTING DECOMPRESSED DATA INTO CHARACTERS
-        String intToString = "";
-        for (int i: decompressed) {
-            if(i > -61){
-                char c = (char)i;
-                intToString += c;
-            }else if(i < -61){
-                switch (i) {
-                    case -90 -> intToString += "æ";
-                    case -72 -> intToString += "ø";
-                    case -91 -> intToString += "å";
-                }
-            }
+        //CONVERTING DECOMPRESSED DATA INTO STRING
+        byte[] decompressedBytes = new byte[decompressed.size()];
+        for (int i = 0; i < decompressedBytes.length; i++) {
+            decompressedBytes[i] = (byte) decompressed.get(i).intValue();
         }
-
-
-
+        String decompressedString = new String(decompressedBytes, StandardCharsets.UTF_8);
 
 
         //PRINTING OUT DECOMPRESSED RESULT AFTER CHARACTER CONVERSION
         System.out.println("\n\n--------------------");
         System.out.println("AFTER DECOMPRESSION:");
         System.out.println("--------------------");
-        System.out.println(intToString);
+        System.out.println(decompressedString);
 
 
         //COUNT NUMBER OF BYTES IN COMPRESSED FILE
