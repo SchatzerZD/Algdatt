@@ -15,25 +15,17 @@ public class Compression {
         ArrayList<Boolean> content;
         boolean[] codeword;
 
-        public LZ() {
-            this.dictLoc = new boolean[7];
+        public LZ(boolean oneByte) {
+            this.dictLoc = new boolean[8];
             this.content = new ArrayList<>();
-            this.codeword = new boolean[8];
+            if(oneByte)this.codeword = new boolean[8];
+            else this.codeword = new boolean[16];
+        }
+        byte getDictLocAsByte(){
+            return booleanToByte(dictLoc);
         }
 
-        public boolean[] getDictLoc() {
-            return dictLoc;
-        }
-
-        public ArrayList<Boolean> getContent() {
-            return content;
-        }
-
-        public boolean[] getCodeword() {
-            return codeword;
-        }
-
-        static byte[] compress(byte[] input, int radix){
+        static int[] compress(byte[] input, int radix){
 
             List<Boolean> inputToBits = bytesToBits(input);
             List<LZ> rows = new ArrayList<>();
@@ -47,10 +39,12 @@ public class Compression {
                 for (int j = 0; j < radix && i+j < inputToBits.size(); j++) {
                     tempBitList.add(inputToBits.get(i+j));
                 }
+                boolean dictIndexLargerThanCapacity = (dictIndex >= Math.pow(2,8-radix)) &&
+                                                      (tempBitList.size() > radix);
 
 
                 if(!contentList.contains(tempBitList)){
-                    LZ row = new LZ();
+                    LZ row = new LZ(!dictIndexLargerThanCapacity);
                     row.content = tempBitList;
                     row.dictLoc = byteToBits((byte) dictIndex);
 
@@ -61,16 +55,23 @@ public class Compression {
                         }
                         for (LZ checkRow: rows) {
                             if(checkRow.content.equals(prefix)){
-                                for (int j = radix; j < checkRow.dictLoc.length; j++) {
-                                    row.codeword[j-radix] = checkRow.dictLoc[j];
+                                if(!dictIndexLargerThanCapacity){
+                                    for (int j = radix; j < checkRow.dictLoc.length; j++) {
+                                        row.codeword[j-radix] = checkRow.dictLoc[j];
+                                    }
+                                }else{
+                                    for (int j = 1; j < checkRow.dictLoc.length; j++) {
+                                        row.codeword[row.codeword.length-radix-j] = checkRow.dictLoc[checkRow.dictLoc.length-j];
+                                    }
                                 }
+
                                 break;
                             }
                         }
                     }
                     for (int j = 0; j < radix; j++) {
                         boolean leastSignificantBit = row.content.get(row.content.size()-1-j);
-                        row.codeword[7-j] = leastSignificantBit;
+                        row.codeword[row.codeword.length-1-j] = leastSignificantBit;
                     }
 
                     dictIndex++;
@@ -80,7 +81,7 @@ public class Compression {
                 }
             }
 
-            byte[] codewordBytes = new byte[rows.size()];
+            int[] codewordBytes = new int[rows.size()];
             for (int i = 0; i < codewordBytes.length; i++) {
                 codewordBytes[i] = booleanToByte(rows.get(i).codeword);
             }
@@ -93,6 +94,7 @@ public class Compression {
                 }
                 System.out.print("   ||   ");
                 printBits(row.codeword);
+                System.out.print("     " + row.getDictLocAsByte());
                 System.out.println();
             }
 
@@ -194,12 +196,12 @@ public class Compression {
         return val;
     }
 
-    static void writeToFile(byte[] byteInput, String filename){
+    static void writeToFile(int[] byteInput, String filename){
         try {
             DataOutputStream outFile = new DataOutputStream((new FileOutputStream(filename)));
 
-            for (byte b: byteInput) {
-                outFile.write(b);
+            for (int b: byteInput) {
+                outFile.writeByte(b);
             }
 
             outFile.flush();
@@ -259,8 +261,8 @@ public class Compression {
         }
         System.out.println();
 
-        byte[] compressedBytes = LZ.compress(textToBytes,1);
-        for (byte b: compressedBytes) {
+        int[] compressedBytes = LZ.compress(textToBytes,4);
+        for (int b: compressedBytes) {
             System.out.print(b + " ");
         }
         System.out.println();
