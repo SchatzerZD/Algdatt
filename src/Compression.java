@@ -7,8 +7,32 @@ import java.util.List;
 
 public class Compression {
 
+
     static class LZ{
         static final int SIZE = 256;
+
+        boolean[] dictLoc;
+        ArrayList<Boolean> content;
+        boolean[] codeword;
+
+        public LZ() {
+            this.dictLoc = new boolean[7];
+            this.content = new ArrayList<>();
+            this.codeword = new boolean[8];
+        }
+
+        public boolean[] getDictLoc() {
+            return dictLoc;
+        }
+
+        public ArrayList<Boolean> getContent() {
+            return content;
+        }
+
+        public boolean[] getCodeword() {
+            return codeword;
+        }
+
         static List<Integer> compress(byte[] input){
 
             List<List<Integer>> listOfIntegerSets = new ArrayList<>();
@@ -95,58 +119,72 @@ public class Compression {
 
     }
 
-        static void writeToFile(List<Integer> results, String filename){
-            try {
-                DataOutputStream outFile = new DataOutputStream((new FileOutputStream(filename)));
+    static List<Boolean> bytesToBits(byte[] inputBytes){
+        List<Boolean> resultBits = new ArrayList<>();
 
-                for (int i: results) {
-                    if(i < 128 && i > -129){
-                        outFile.writeByte(i);
-                    }else{
-                        outFile.writeChar(i);
-                    }
-                }
-
-                outFile.flush();
-                outFile.close();
-
-            } catch (IOException e) {
-                System.out.println("An error occurred.");
-                e.printStackTrace();
+        for (byte Byte: inputBytes) {
+            int value = Byte;
+            for (int i = 0; i < 8; i++) {
+                resultBits.add((value & 128) != 0);
+                value <<= 1;
             }
         }
 
-        static List<Integer> readIntegersFromFile(String filename){
-            List<Integer> resultList = new ArrayList<>();
-                try{
-                    DataInputStream inFile = new DataInputStream(new FileInputStream(filename));
-                    int i;
-                    while((i=inFile.read())!= -1){
-                        if(i==1){
-                            i = inFile.read();
-                            resultList.add(i+LZ.SIZE);
-                        }else if(i>Byte.MAX_VALUE){
-                            resultList.add(i-LZ.SIZE);
-                        }
-                        else{
-                            resultList.add(i);
-                        }
-                    }
+        return  resultBits;
+    }
 
-                }catch (IOException e){
-                    System.out.println("An error occurred.");
-                    e.printStackTrace();
+    static void writeToFile(List<Integer> results, String filename){
+        try {
+            DataOutputStream outFile = new DataOutputStream((new FileOutputStream(filename)));
+
+            for (int i: results) {
+                if(i < 128 && i > -129){
+                    outFile.writeByte(i);
+                }else{
+                    outFile.writeChar(i);
+                }
+            }
+
+            outFile.flush();
+            outFile.close();
+
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    static List<Integer> readIntegersFromFile(String filename){
+        List<Integer> resultList = new ArrayList<>();
+            try{
+                DataInputStream inFile = new DataInputStream(new FileInputStream(filename));
+                int i;
+                while((i=inFile.read())!= -1){
+                    if(i==1){
+                        i = inFile.read();
+                        resultList.add(i+LZ.SIZE);
+                    }else if(i>Byte.MAX_VALUE){
+                        resultList.add(i-LZ.SIZE);
+                    }
+                    else{
+                        resultList.add(i);
+                    }
                 }
 
-            return resultList;
+            }catch (IOException e){
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
 
-        }
+        return resultList;
+
+    }
 
 
     public static void main(String[] args) throws IOException {
         String compressedFileName = "Compressed_LZ.txt";
         //READ TEXT DATA FOR COMPRESSION
-        String filename = "diverse.txt";
+        String filename = "compressTest.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
@@ -156,6 +194,10 @@ public class Compression {
         System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
+        List<Boolean> bits = bytesToBits(textToBytes);
+        for (boolean b: bits) {
+            System.out.print(b ? "1":"0");
+        }
 
         // COMPRESSION, RESULT WRITTEN TO FILE
         List<Integer> result = LZ.compress(textToBytes);
