@@ -188,6 +188,9 @@ public class Compression {
         }
 
 
+
+
+
         //PRINTING OUT DECOMPRESSED RESULT AFTER CHARACTER CONVERSION
         System.out.println("\n\n--------------------");
         System.out.println("AFTER DECOMPRESSION:");
@@ -195,10 +198,17 @@ public class Compression {
         System.out.println(intToString);
 
 
+        //COUNT NUMBER OF BYTES IN COMPRESSED FILE
+        int compressedSize = 0;
+        for (int i: result) {
+            compressedSize += (i < 128) ? 1:2;
+        }
+
+
         //COMPRESSION RESULTS PRINTED OUT
         System.out.println("\n\nOriginal size: " + textToBytes.length);
-        System.out.println("Compressed size: " + result.size());
-        System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
+        System.out.println("Compressed size: " + compressedSize);
+        System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)compressedSize/(double)textToBytes.length)*100));
 
         System.out.println("\nDecompressed size: " + decompressed.size() + "\n");
 
