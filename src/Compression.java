@@ -22,7 +22,7 @@ public class Compression {
             this.codeword = new ArrayList<>();
         }
 
-        static void compress(byte[] input){
+        static void compress(byte[] input, int radix){
 
             List<Boolean> inputToBits = bytesToBits(input);
             List<LZ> rows = new ArrayList<>();
@@ -31,18 +31,20 @@ public class Compression {
             int dictIndex = 1;
 
             ArrayList<Boolean> tempBitList = new ArrayList<>();
-            for (int i = 0; i < inputToBits.size(); i++) {
+            for (int i = 0; i < inputToBits.size(); i+=radix) {
 
-                tempBitList.add(inputToBits.get(i));
+                for (int j = 0; j < radix && i+j < inputToBits.size(); j++) {
+                    tempBitList.add(inputToBits.get(i+j));
+                }
 
                 if(!contentList.contains(tempBitList)){
                     LZ row = new LZ();
                     row.content = tempBitList;
                     row.dictLoc.addAll(intToBits(dictIndex));
 
-                    if(row.content.size() != 1){
+                    if(row.content.size() != radix){
                         ArrayList<Boolean> prefix = new ArrayList<>();
-                        for (int j = 0; j < row.content.size()-1; j++) {
+                        for (int j = 0; j < row.content.size()-radix; j++) {
                             prefix.add(row.content.get(j));
                         }
                         for (LZ checkRow: rows) {
@@ -53,18 +55,28 @@ public class Compression {
                         }
                     }
 
-                    boolean leastSignificantBit = row.content.get(row.content.size()-1);
-                    row.codeword.add(leastSignificantBit);
+                    for (int j = radix; j > 0; j--) {
+                        if(!(row.content.size() < radix)){
+                            boolean leastSignificantBit = row.content.get(row.content.size()-j);
+                            row.codeword.add(leastSignificantBit);
+                        }else{
+                            row.codeword.addAll(row.content);
+                        }
+                    }
+
 
                     dictIndex++;
                     rows.add(row);
                     contentList.add(tempBitList);
                     tempBitList = new ArrayList<>();
                 }
+
+                System.out.print("Compressing [" + "#".repeat(i/(inputToBits.size()/10)) + " ".repeat(10-(i/(inputToBits.size()/10))) + "] " + String.format("%.2f%%",(((double)i/(double)inputToBits.size())*100)) + "\r");
             }
 
             List<Boolean> output = new ArrayList<>();
             for (LZ row: rows) {
+                output.addAll(bitStringLengthInBits(row.codeword.size()));
                 output.addAll(row.codeword);
             }
 
@@ -83,11 +95,14 @@ public class Compression {
 
                 System.out.printf("%16s %4s %16s %4s %32s",dictString,"||",contentString,"||",codeString + "\n");
             }
+
             System.out.println();
 
             StringBuilder outputString = new StringBuilder();
             for (boolean b: output) {outputString.append(b ? "1":"0");}
             System.out.println(outputString);
+
+            System.out.println(output.size()/8);
 
 
 
@@ -170,6 +185,18 @@ public class Compression {
         return resultBits;
     }
 
+    static List<Boolean> bitStringLengthInBits(int lengthOfBitString){
+        List<Boolean> resultBits = new ArrayList<>();
+
+        int value = lengthOfBitString;
+        for (int i = 0; i < 5; i++) {
+            resultBits.add((value & 16) != 0);
+            value <<= 1;
+        }
+
+        return resultBits;
+    }
+
     static byte booleanArrayToByte(List<Boolean> booleanArrayList){
         byte b = 0;
         for (int i = booleanArrayList.size(); i > 0; i--) {
@@ -178,14 +205,20 @@ public class Compression {
         return b;
     }
 
-    static String printBits(boolean[] bits){
+    static String getBitString(boolean[] bits){
         StringBuilder returnString = new StringBuilder();
         for (boolean b: bits) {
             returnString.append(b ? "1":"0");
         }
         return String.valueOf(returnString);
     }
-
+    static String getBitString(List<Boolean> bits){
+        StringBuilder returnString = new StringBuilder();
+        for (boolean b: bits) {
+            returnString.append(b ? "1":"0");
+        }
+        return String.valueOf(returnString);
+    }
     static byte booleanToByte(boolean[] array) {
         byte val = 0;
         for (boolean b : array) {
@@ -250,19 +283,18 @@ public class Compression {
         System.out.println("--------------------");
         System.out.println("BEFORE COMPRESSION:");
         System.out.println("--------------------");
-        System.out.println(contentFromFile);
+        //System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
         System.out.println();
 
-        List<Boolean> bits = bytesToBits(textToBytes);
+        /*List<Boolean> bits = bytesToBits(textToBytes);
         for (boolean b: bits) {
             System.out.print(b ? "1":"0");
-        }
+        }*/
         System.out.println();
 
-        LZ.compress(textToBytes);
-
+        LZ.compress(textToBytes, 8);
 
 
         /*
