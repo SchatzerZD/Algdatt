@@ -3,8 +3,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class Compression {
@@ -21,9 +19,38 @@ public class Compression {
                 codeword = null;
                 this.leftNode = null;
                 this.rightNode = null;
-
-                Huffman.nodes.add(this);
             }
+        }
+
+        static void sortNodesByValue(){
+            nodes.sort((o1, o2) -> {
+                if (o1.nodeValue == o2.nodeValue) return 0;
+                return o1.nodeValue < o2.nodeValue ? 1 : -1;
+            });
+        }
+        static int listLength(){
+            return nodes.size();
+        }
+        static Node lastNode(){
+            return nodes.get(listLength()-1);
+        }
+
+        static void constructTree(){
+            while(listLength() != 1){
+                sortNodesByValue();
+                Node treeNode = new Node();
+                treeNode.leftNode = lastNode();
+                nodes.remove(lastNode());
+                treeNode.rightNode = lastNode();
+                nodes.remove(lastNode());
+                treeNode.nodeValue = treeNode.leftNode.nodeValue + treeNode.rightNode.nodeValue;
+                nodes.add(treeNode);
+                sortNodesByValue();
+            }
+        }
+
+        static List<Boolean> getHuffmanCompression(List<Boolean> input){
+            return null;
         }
 
     }
@@ -76,6 +103,7 @@ public class Compression {
                             Huffman.Node node = new Huffman.Node();
                             node.codeword = tempCharacterBooleanString;
                             node.nodeValue++;
+                            Huffman.nodes.add(node);
                         }else{
                             for (int k = 0; k < Huffman.nodes.size(); k++) {
                                 if(Huffman.nodes.get(k).codeword.equals(tempCharacterBooleanString)){
@@ -113,11 +141,6 @@ public class Compression {
             //end
 
 
-            Huffman.nodes.sort((o1, o2) -> {
-                if (o1.nodeValue == o2.nodeValue) return 0;
-                return o1.nodeValue < o2.nodeValue ? 1 : -1;
-            });
-
 
             //Adds to codeword after dictionary index added
             for (LZ row: rows) {
@@ -153,16 +176,14 @@ public class Compression {
 
 
 
-            System.out.println();
+            /*System.out.println();
             System.out.println(getBitString(output));
 
             System.out.println(output.size()/8);
-            System.out.println(rows.size());
+            System.out.println(rows.size());*/
             System.out.println();
 
-            for (Huffman.Node node: Huffman.nodes) {
-                System.out.printf("%s %8s",getBitString(node.codeword),node.nodeValue + "\n");
-            }
+            Huffman.constructTree();
 
 
 
