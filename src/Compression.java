@@ -3,10 +3,30 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class Compression {
 
+    class Huffman{
+        static List<Node> nodes = new ArrayList<>();
+        static class Node{
+            int nodeValue;
+            List<Boolean> codeword;
+            Node leftNode;
+            Node rightNode;
+            Node() {
+                this.nodeValue = 0;
+                codeword = null;
+                this.leftNode = null;
+                this.rightNode = null;
+
+                Huffman.nodes.add(this);
+            }
+        }
+
+    }
 
     static class LZ{
 
@@ -15,11 +35,13 @@ public class Compression {
         List<Boolean> dictLoc;
         List<Boolean> content;
         List<Boolean> codeword;
+        int codeWordDictIndex;
 
         public LZ() {
             this.dictLoc = new ArrayList<>();
             this.content = new ArrayList<>();
             this.codeword = new ArrayList<>();
+            this.codeWordDictIndex = 0;
         }
 
         static void compress(byte[] input, int radix){
@@ -43,15 +65,27 @@ public class Compression {
                     row.content = tempBitList;
                     row.dictLoc.addAll(intToBits(dictIndex));
 
-                    if(row.content.size() == radix){
-                        for (int j = 0; j < row.content.size()/8; j++) {
-                            List<Boolean> tempCharacterBooleanString = new ArrayList<>();
-                            for (int k = 0; k < 8; k++) {
-                                tempCharacterBooleanString.add(row.content.get(k + (8*j)));
+
+                    for (int j = 0; j < row.content.size()/8; j++) {
+                        List<Boolean> tempCharacterBooleanString = new ArrayList<>();
+                        for (int k = 0; k < 8; k++) {
+                            tempCharacterBooleanString.add(row.content.get(k + (8*j)));
+                        }
+                        if(!uniqueBitStrings.contains(tempCharacterBooleanString)){
+                            uniqueBitStrings.add(tempCharacterBooleanString);
+                            Huffman.Node node = new Huffman.Node();
+                            node.codeword = tempCharacterBooleanString;
+                            node.nodeValue++;
+                        }else{
+                            for (int k = 0; k < Huffman.nodes.size(); k++) {
+                                if(Huffman.nodes.get(k).codeword.equals(tempCharacterBooleanString)){
+                                    Huffman.nodes.get(k).nodeValue += 1;
+                                    break;
+                                }
                             }
-                            if(!uniqueBitStrings.contains(tempCharacterBooleanString))uniqueBitStrings.add(tempCharacterBooleanString);
                         }
                     }
+
 
                     if(row.content.size() != radix){
                         ArrayList<Boolean> prefix = new ArrayList<>();
@@ -61,17 +95,9 @@ public class Compression {
                         for (LZ checkRow: rows) {
                             if(checkRow.content.equals(prefix)){
                                 row.codeword.addAll(checkRow.dictLoc);
+                                row.codeWordDictIndex = checkRow.dictLoc.size();
                                 break;
                             }
-                        }
-                    }
-
-                    for (int j = radix; j > 0; j--) {
-                        if(!(row.content.size() < radix)){
-                            boolean leastSignificantBit = row.content.get(row.content.size()-j);
-                            row.codeword.add(leastSignificantBit);
-                        }else{
-                            row.codeword.addAll(row.content);
                         }
                     }
 
@@ -84,40 +110,58 @@ public class Compression {
 
                 System.out.print("Compressing [" + "#".repeat(i/(inputToBits.size()/10)) + " ".repeat(10-(i/(inputToBits.size()/10))) + "] " + String.format("%.2f%%",(((double)i/(double)inputToBits.size())*100)) + "\r");
             }
+            //end
+
+
+            Huffman.nodes.sort((o1, o2) -> {
+                if (o1.nodeValue == o2.nodeValue) return 0;
+                return o1.nodeValue < o2.nodeValue ? 1 : -1;
+            });
+
+
+            //Adds to codeword after dictionary index added
+            for (LZ row: rows) {
+                for (int j = radix; j > 0; j--) {
+                    if(!(row.content.size() < radix)){
+                        boolean leastSignificantBit = row.content.get(row.content.size()-j);
+                        row.codeword.add(leastSignificantBit);
+                    }else{
+                        row.codeword.addAll(row.content);
+                    }
+                }
+            }
+
+            for (LZ row: rows) {
+                System.out.printf("%10s %2s %64s %8s %32s",getBitString(row.dictLoc),"||",getBitString(row.content),"||",getBitString(row.codeword) + "           " + row.codeWordDictIndex + "\n");
+            }
+
+
+
+
+
+
             System.out.println("\n\n");
 
             List<Boolean> output = new ArrayList<>();
             for (LZ row: rows) {
-                output.addAll(bitStringLengthInBits(row.codeword.size()));
+                output.addAll(bitStringLengthInBits(row.codeWordDictIndex+1));
                 output.addAll(row.codeword);
             }
 
 
 
 
-            for (LZ row: rows) {
-                StringBuilder contentString = new StringBuilder();
-                for (boolean b: row.content) {contentString.append(b ? "1":"0");}
 
-                StringBuilder dictString = new StringBuilder();
-                for (boolean b: row.dictLoc) {dictString.append(b ? "1":"0");}
-
-                StringBuilder codeString = new StringBuilder();
-                for (boolean b: row.codeword) {codeString.append(b ? "1":"0");}
-
-                System.out.printf("%16s %8s %16s %8s %16s",dictString,"||",contentString,"||",codeString + "\n");
-            }
 
             System.out.println();
-
-            StringBuilder outputString = new StringBuilder();
-            for (boolean b: output) {outputString.append(b ? "1":"0");}
-            System.out.println(outputString);
+            System.out.println(getBitString(output));
 
             System.out.println(output.size()/8);
+            System.out.println(rows.size());
             System.out.println();
-            for (List<Boolean> l: uniqueBitStrings) {
-                System.out.println(getBitString(l));
+
+            for (Huffman.Node node: Huffman.nodes) {
+                System.out.printf("%s %8s",getBitString(node.codeword),node.nodeValue + "\n");
             }
 
 
