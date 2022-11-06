@@ -27,6 +27,7 @@ public class Compression {
             List<Boolean> inputToBits = bytesToBits(input);
             List<LZ> rows = new ArrayList<>();
             List<ArrayList<Boolean>> contentList = new ArrayList<>();
+            List<List<Boolean>> uniqueBitStrings = new ArrayList<>();
 
             int dictIndex = 1;
 
@@ -41,6 +42,16 @@ public class Compression {
                     LZ row = new LZ();
                     row.content = tempBitList;
                     row.dictLoc.addAll(intToBits(dictIndex));
+
+                    if(row.content.size() == radix){
+                        for (int j = 0; j < row.content.size()/8; j++) {
+                            List<Boolean> tempCharacterBooleanString = new ArrayList<>();
+                            for (int k = 0; k < 8; k++) {
+                                tempCharacterBooleanString.add(row.content.get(k + (8*j)));
+                            }
+                            if(!uniqueBitStrings.contains(tempCharacterBooleanString))uniqueBitStrings.add(tempCharacterBooleanString);
+                        }
+                    }
 
                     if(row.content.size() != radix){
                         ArrayList<Boolean> prefix = new ArrayList<>();
@@ -73,6 +84,7 @@ public class Compression {
 
                 System.out.print("Compressing [" + "#".repeat(i/(inputToBits.size()/10)) + " ".repeat(10-(i/(inputToBits.size()/10))) + "] " + String.format("%.2f%%",(((double)i/(double)inputToBits.size())*100)) + "\r");
             }
+            System.out.println("\n\n");
 
             List<Boolean> output = new ArrayList<>();
             for (LZ row: rows) {
@@ -93,7 +105,7 @@ public class Compression {
                 StringBuilder codeString = new StringBuilder();
                 for (boolean b: row.codeword) {codeString.append(b ? "1":"0");}
 
-                System.out.printf("%16s %4s %16s %4s %32s",dictString,"||",contentString,"||",codeString + "\n");
+                System.out.printf("%16s %8s %16s %8s %16s",dictString,"||",contentString,"||",codeString + "\n");
             }
 
             System.out.println();
@@ -103,6 +115,10 @@ public class Compression {
             System.out.println(outputString);
 
             System.out.println(output.size()/8);
+            System.out.println();
+            for (List<Boolean> l: uniqueBitStrings) {
+                System.out.println(getBitString(l));
+            }
 
 
 
