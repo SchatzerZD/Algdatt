@@ -300,9 +300,12 @@ public class Compression {
                 dictIndex++;
                 rows.add(row);
 
+                System.out.print("Decompressing [" + "#".repeat((int)(((double) position/(double) compressedBitString.size())*10)) + " ".repeat(10-(int)(((double) position/(double) compressedBitString.size())*10)) + "] " + String.format("%.2f%%",(((double)position/(double)compressedBitString.size())*100)) + "\r");
+
             }
 
             List<Boolean> output = new ArrayList<>();
+            int i = 0;
             for (LZ row: rows) {
                 if(row.codeword.size() == radix)row.content = row.codeword;
                 else{
@@ -317,6 +320,8 @@ public class Compression {
                 }
                 output.addAll(row.content);
                 //System.out.printf("%16s %2s %64s %8s %64s",getBitString(row.dictLoc),"||",getBitString(row.content),"||",getBitString(row.codeword) + "           " + row.codeWordDictIndex + "\n");
+                System.out.print("Decompressing [" + "#".repeat(i/(rows.size()/10)) + " ".repeat(10-i/(rows.size()/10)) + "] " + String.format("%.2f%%",(((double)i/(double)rows.size())*100)) + "\r");
+                i++;
             }
 
 
