@@ -231,19 +231,16 @@ public class Compression {
             /*System.out.println(Huffman.originalNodes.get(0).nodeValue);
             System.out.println(uniqueBitStrings.size());
             System.out.println(getBitString(byteToBits((byte) uniqueBitStrings.size())));
-            System.out.println(getBitString(output));
             System.out.println(output.size()/8 + " B");*/
+            System.out.println(getBitString(output));
 
-            byte[] byteListOutput = new byte[output.size()/8];
-
+            byte[] byteListOutput = new byte[(output.size()/8) + 1];
             for (int i = 0; i < byteListOutput.length; i++) {
+                byte b = 0;
                 for (int j = 0; j < 8; j++) {
-                    if(output.get((i*8)+j)){
-                        byteListOutput[i] |= 1;
-                    }
-                    byteListOutput[i]<<=1;
+                    if((i*8)+j < output.size() && output.get((i*8)+j)) b |= (128 >> j);
                 }
-                byteListOutput[i] >>=1;
+                byteListOutput[i] = b;
             }
 
             return byteListOutput;
@@ -252,51 +249,9 @@ public class Compression {
         }
 
 
-        static List<Integer> decompress(List<Integer> input){
-
-            List<List<Integer>> listOfIntegerSets = new ArrayList<>();
-            List<Integer> result = new ArrayList<>();
+        static void decompress(byte[] compressedBytes){
 
 
-            for (var i = 0; i < input.size(); i++) {
-                int current = input.get(i);
-                List<Integer> tempList = new ArrayList<>();
-
-                if(current >= LZ.SIZE){
-                    List<Integer> currentGroupOfInt = listOfIntegerSets.get(current-256);
-                    tempList.addAll(currentGroupOfInt);
-                    result.addAll(currentGroupOfInt);
-
-                }else{
-                    tempList.add(current);
-                    result.add(current);
-                }
-
-                int appends = 1;
-                while(i + appends < input.size()){
-                    if(input.get(i + appends) >= 256 && input.get(i + appends) - 256 < listOfIntegerSets.size()){
-                        int firstIndex = listOfIntegerSets.get(input.get(i + appends) - 256).get(0);
-                        tempList.add(firstIndex);
-                    }else if(input.get(i + appends) >= 256){
-                        int firstIndex = tempList.get(0);
-                        tempList.add(firstIndex);
-                    } else{
-                        tempList.add(input.get(i + appends));
-                    }
-
-                    if(!listOfIntegerSets.contains(tempList)){
-                        listOfIntegerSets.add(tempList);
-                        break;
-                    }
-
-                    appends++;
-
-                }
-
-            }
-
-
-            return result;
         }
 
 
@@ -439,7 +394,7 @@ public class Compression {
 
 
     public static void main(String[] args) throws IOException {
-        String compressedFileName = "Compressed_LZ2.txt";
+        String compressedFileName = "Deflate.txt";
         //READ TEXT DATA FOR COMPRESSION
         String filename = "diverse.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
@@ -462,9 +417,15 @@ public class Compression {
         System.out.println();
 
         byte[] compressedBytes = LZ.compress(textToBytes,8);
-        writeToFile(compressedBytes, "Deflate.txt");
+        writeToFile(compressedBytes, compressedFileName);
         System.out.println(compressedBytes.length + " B");
 
+        byte[] compressedBytesFromFile = Files.readAllBytes(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + compressedFileName));
+        List<Boolean> bitsCompressed = bytesToBits(compressedBytesFromFile);
+
+        for (boolean b: bitsCompressed) {
+            System.out.print(b ? "1":"0");
+        }
 
         /*
         // COMPRESSION, RESULT WRITTEN TO FILE
