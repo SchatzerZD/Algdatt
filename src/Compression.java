@@ -111,7 +111,7 @@ public class Compression {
             this.codeWordDictIndex = 0;
         }
 
-        static void compress(byte[] input, int radix){
+        static byte[] compress(byte[] input, int radix){
 
             List<Boolean> inputToBits = bytesToBits(input);
             List<LZ> rows = new ArrayList<>();
@@ -211,15 +211,15 @@ public class Compression {
                 System.out.printf("%16s %2s %64s %8s %64s",getBitString(row.dictLoc),"||",getBitString(row.content),"||",getBitString(row.codeword) + "           " + row.codeWordDictIndex + "\n");
             }*/
 
+            List<Boolean> output = new ArrayList<>();
 
+            output.addAll(intToBitsN(radix/8,4));
 
-            System.out.println("\n\n");
-
-            List<Boolean> output = new ArrayList<>(byteToBits((byte) uniqueBitStrings.size()));
+            output.addAll(intToBitsN(uniqueBitStrings.size(), radix));
 
             for (Huffman.Node node: Huffman.originalNodes) {
                 output.addAll(node.codeword);
-                output.addAll(intToBits32(node.nodeValue));
+                output.addAll(intToBitsN(node.nodeValue,16));
             }
 
             //ADD COMPRESSED DATA INTO OUTPUT
@@ -228,10 +228,25 @@ public class Compression {
                 output.addAll(row.codeword);
             }
 
+            /*System.out.println(Huffman.originalNodes.get(0).nodeValue);
+            System.out.println(uniqueBitStrings.size());
+            System.out.println(getBitString(byteToBits((byte) uniqueBitStrings.size())));
             System.out.println(getBitString(output));
+            System.out.println(output.size()/8 + " B");*/
 
-            System.out.println(output.size()/8 + " B");
-            System.out.println();
+            byte[] byteListOutput = new byte[output.size()/8];
+
+            for (int i = 0; i < byteListOutput.length; i++) {
+                for (int j = 0; j < 8; j++) {
+                    if(output.get((i*8)+j)){
+                        byteListOutput[i] |= 1;
+                    }
+                    byteListOutput[i]<<=1;
+                }
+                byteListOutput[i] >>=1;
+            }
+
+            return byteListOutput;
 
 
         }
@@ -324,12 +339,14 @@ public class Compression {
         return resultBits;
     }
 
-    static List<Boolean> intToBits32(int inputByte){
+    static List<Boolean> intToBitsN(int inputByte, int N){
         List<Boolean> resultBits = new ArrayList<>();
 
         int value = inputByte;
-        for (int i = 0; i < 32; i++) {
-            resultBits.add((value & (long)Integer.MAX_VALUE + 1) != 0);
+        long oneByte = 1;
+        oneByte <<= N-1;
+        for (int i = 0; i < N; i++) {
+            resultBits.add((value & oneByte) != 0);
             value <<= 1;
         }
         return resultBits;
@@ -386,10 +403,8 @@ public class Compression {
             for (byte b: byteInput) {
                 outFile.writeByte(b);
             }
-
             outFile.flush();
             outFile.close();
-
         } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
@@ -426,7 +441,7 @@ public class Compression {
     public static void main(String[] args) throws IOException {
         String compressedFileName = "Compressed_LZ2.txt";
         //READ TEXT DATA FOR COMPRESSION
-        String filename = "compressTest.txt";
+        String filename = "diverse.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
@@ -439,13 +454,16 @@ public class Compression {
         System.out.println();
 
         List<Boolean> bits = bytesToBits(textToBytes);
-        for (boolean b: bits) {
+        /*for (boolean b: bits) {
             System.out.print(b ? "1":"0");
-        }
+        }*/
         System.out.println();
         System.out.println(bits.size()/8 + " B");
+        System.out.println();
 
-        LZ.compress(textToBytes, 8);
+        byte[] compressedBytes = LZ.compress(textToBytes,8);
+        writeToFile(compressedBytes, "Deflate.txt");
+        System.out.println(compressedBytes.length + " B");
 
 
         /*
