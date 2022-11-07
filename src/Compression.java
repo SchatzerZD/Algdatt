@@ -93,6 +93,11 @@ public class Compression {
             return result;
         }
 
+        static Node navigate(Node node,boolean right){
+            if(right) return node.rightNode;
+            else return node.leftNode;
+        }
+
         static void reset(){
             nodes = new ArrayList<>();
             originalNodes = new ArrayList<>();
@@ -234,11 +239,17 @@ public class Compression {
                 output.addAll(row.codeword);
             }
 
+            System.out.println();
+            for (List<Boolean> b: uniqueBitStrings) {
+                System.out.println(getBitString(b));
+            }
+            System.out.println();
+
             //System.out.println(Huffman.originalNodes.get(0).nodeValue);
             /*System.out.println(uniqueBitStrings.size());
             System.out.println(getBitString(byteToBits((byte) uniqueBitStrings.size())));
-            System.out.println(output.size()/8 + " B");*/
-            System.out.println(getBitString(output));
+            System.out.println(output.size()/8 + " B");
+            System.out.println(getBitString(output));*/
 
             byte[] byteListOutput = new byte[(output.size()/8) + 1];
             for (int i = 0; i < byteListOutput.length; i++) {
@@ -258,12 +269,40 @@ public class Compression {
         static void decompress(byte[] compressedBytes){
             Huffman.reset();
             List<Boolean> compressedBitString = bytesToBits(compressedBytes);
+            List<LZ> rows = new ArrayList<>();
+            System.out.println(getBitString(compressedBitString));
 
-            List<Boolean> radixInBits = compressedBitString.subList(0,4);
-            int radix = bitsToInt(radixInBits)*8;
+            int radix = bitsToInt(compressedBitString.subList(0,4))*8;
+            int numberOfCharacters = bitsToInt(compressedBitString.subList(4,4+radix));
+            int position = 4+radix;
 
-            List<Boolean> numberOfCharactersInBits = compressedBitString.subList(5,4+radix);
-            int numberOfCharacters = bitsToInt(numberOfCharactersInBits);
+            System.out.println(numberOfCharacters);
+            for (int i = 0; i < numberOfCharacters; i++) {
+                List<Boolean> characterBinaryString = compressedBitString.subList(position,position+radix);
+                position += radix;
+                int frequencyOfCharacter = bitsToInt(compressedBitString.subList(position,position+16));
+                position += 16;
+
+                Huffman.Node node = new Huffman.Node();
+                node.codeword = characterBinaryString;
+                node.nodeValue = frequencyOfCharacter;
+                Huffman.nodes.add(node);
+                Huffman.originalNodes.add(node);
+
+                System.out.printf("%8s %4s",getBitString(Huffman.nodes.get(i).codeword),Huffman.nodes.get(i).nodeValue + "\n");
+            }
+            Huffman.constructTree();
+
+            while(position < compressedBitString.size()){
+                int stepsAheadHuffmancode = bitsToInt(compressedBitString.subList(position,position+5));
+                if(stepsAheadHuffmancode != 1){
+                    List<Boolean> dictReference = compressedBitString.subList(position+5,position+5+stepsAheadHuffmancode);
+                }
+                LZ row = new LZ();
+                //TODO: Use navigate() method for huffman decoding
+                position += 5 + stepsAheadHuffmancode;
+
+            }
 
 
         }
