@@ -3,6 +3,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Compression {
@@ -138,7 +139,7 @@ public class Compression {
                     tempBitList.add(inputToBits.get(i+j));
                 }
 
-                if(!contentList.contains(tempBitList)){
+                if(!contentList.contains(tempBitList) || i >= inputToBits.size()-radix){
                     LZ row = new LZ();
                     row.content = tempBitList;
                     row.dictLoc.addAll(intToBits(dictIndex));
@@ -218,9 +219,9 @@ public class Compression {
             }
 
 
-            /*for (LZ row: rows) {
-                System.out.printf("%16s %2s %64s %8s %64s",getBitString(row.dictLoc),"||",getBitString(row.content),"||",getBitString(row.codeword) + "           " + row.codeWordDictIndex + "\n");
-            }*/
+//            for (LZ row: rows) {
+//                System.out.printf("%16s %2s %64s %8s %64s",getBitString(row.dictLoc),"||",getBitString(row.content),"||",getBitString(row.codeword) + "           " + row.codeWordDictIndex + "\n");
+//            }
 
             List<Boolean> output = new ArrayList<>();
 
@@ -239,26 +240,8 @@ public class Compression {
                 output.addAll(row.codeword);
             }
 
-            System.out.println();
-            for (List<Boolean> b: uniqueBitStrings) {
-                System.out.println(getBitString(b));
-            }
-            System.out.println();
-
-            //System.out.println(Huffman.originalNodes.get(0).nodeValue);
-            /*System.out.println(uniqueBitStrings.size());
-            System.out.println(getBitString(byteToBits((byte) uniqueBitStrings.size())));
-            System.out.println(output.size()/8 + " B");
-            System.out.println(getBitString(output));*/
-
             byte[] byteListOutput = new byte[(output.size()/8) + 1];
-            for (int i = 0; i < byteListOutput.length; i++) {
-                byte b = 0;
-                for (int j = 0; j < 8; j++) {
-                    if((i*8)+j < output.size() && output.get((i*8)+j)) b |= (128 >> j);
-                }
-                byteListOutput[i] = b;
-            }
+            divideListIntoBytes(output, byteListOutput);
 
             return byteListOutput;
 
@@ -266,17 +249,16 @@ public class Compression {
         }
 
 
-        static void decompress(byte[] compressedBytes){
+        static byte[] decompress(byte[] compressedBytes){
             Huffman.reset();
             List<Boolean> compressedBitString = bytesToBits(compressedBytes);
             List<LZ> rows = new ArrayList<>();
-            System.out.println(getBitString(compressedBitString));
 
             int radix = bitsToInt(compressedBitString.subList(0,4))*8;
             int numberOfCharacters = bitsToInt(compressedBitString.subList(4,4+radix));
             int position = 4+radix;
 
-            System.out.println(numberOfCharacters);
+
             for (int i = 0; i < numberOfCharacters; i++) {
                 List<Boolean> characterBinaryString = compressedBitString.subList(position,position+radix);
                 position += radix;
@@ -289,22 +271,73 @@ public class Compression {
                 Huffman.nodes.add(node);
                 Huffman.originalNodes.add(node);
 
-                System.out.printf("%8s %4s",getBitString(Huffman.nodes.get(i).codeword),Huffman.nodes.get(i).nodeValue + "\n");
             }
             Huffman.constructTree();
 
-            while(position < compressedBitString.size()){
+            int dictIndex = 1;
+            while(!listContainsOnlyFalse(compressedBitString.subList(position,compressedBitString.size()-1))){
                 int stepsAheadHuffmancode = bitsToInt(compressedBitString.subList(position,position+5));
-                if(stepsAheadHuffmancode != 1){
-                    List<Boolean> dictReference = compressedBitString.subList(position+5,position+5+stepsAheadHuffmancode);
-                }
+                boolean hasDictReferenace = false;
                 LZ row = new LZ();
-                //TODO: Use navigate() method for huffman decoding
-                position += 5 + stepsAheadHuffmancode;
+                List<Boolean> dictReference = new ArrayList<>();
+
+                if(stepsAheadHuffmancode != 1){
+                    dictReference = compressedBitString.subList(position+5,position+4+stepsAheadHuffmancode);
+                    hasDictReferenace = true;
+                }
+
+                position += 4 + stepsAheadHuffmancode;
+
+                Huffman.Node node = Huffman.root();
+                while(node.children.size() != 0){
+                    node = Huffman.navigate(node,compressedBitString.get(position));
+                    position++;
+                }
+                List<Boolean> decompressedHuffManCode = node.codeword;
+
+
+                row.dictLoc.addAll(intToBits(dictIndex));
+                if(hasDictReferenace)row.codeword.addAll(dictReference);
+                row.codeword.addAll(decompressedHuffManCode);
+
+                dictIndex++;
+                rows.add(row);
 
             }
 
+            List<Boolean> output = new ArrayList<>();
+            for (LZ row: rows) {
+                if(row.codeword.size() == radix)row.content = row.codeword;
+                else{
+                    List<Boolean> dictLocFromCodeWord = row.codeword.subList(0,row.codeword.size()-radix);
+                    List<Boolean> leastSignificantBits = row.codeword.subList(row.codeword.size()-radix,row.codeword.size());
 
+                    for (LZ checkRow: rows) {
+                        if(checkRow.dictLoc.equals(dictLocFromCodeWord))row.content.addAll(checkRow.content);
+                    }
+                    row.content.addAll(leastSignificantBits);
+
+                }
+                output.addAll(row.content);
+                //System.out.printf("%16s %2s %64s %8s %64s",getBitString(row.dictLoc),"||",getBitString(row.content),"||",getBitString(row.codeword) + "           " + row.codeWordDictIndex + "\n");
+            }
+
+
+            byte[] byteListOutput = new byte[(output.size()/8)];
+            divideListIntoBytes(output, byteListOutput);
+            return byteListOutput;
+
+
+        }
+
+        static void divideListIntoBytes(List<Boolean> list, byte[] byteListOutput) {
+            for (int i = 0; i < byteListOutput.length; i++) {
+                byte b = 0;
+                for (int j = 0; j < 8; j++) {
+                    if((i*8)+j < list.size() && list.get((i*8)+j)) b |= (128 >> j);
+                }
+                byteListOutput[i] = b;
+            }
         }
 
 
@@ -330,6 +363,13 @@ public class Compression {
         }
 
         return resultBits;
+    }
+
+    static boolean listContainsOnlyFalse(List<Boolean> booleanList){
+        for (boolean b: booleanList) {
+            if(b)return false;
+        }
+        return true;
     }
 
     static List<Boolean> byteToBits(byte inputByte){
@@ -464,18 +504,10 @@ public class Compression {
         System.out.println("--------------------");
         System.out.println("BEFORE COMPRESSION:");
         System.out.println("--------------------");
-        //System.out.println(contentFromFile);
+        System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
 
-        System.out.println();
-
-        List<Boolean> bits = bytesToBits(textToBytes);
-        for (boolean b: bits) {
-            System.out.print(b ? "1":"0");
-        }
-        System.out.println();
-        System.out.println(bits.size()/8 + " B");
         System.out.println();
 
         byte[] compressedBytes = LZ.compress(textToBytes,8);
@@ -483,61 +515,30 @@ public class Compression {
         System.out.println(compressedBytes.length + " B");
 
         byte[] compressedBytesFromFile = Files.readAllBytes(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + compressedFileName));
-        List<Boolean> bitsCompressed = bytesToBits(compressedBytesFromFile);
 
-        for (boolean b: bitsCompressed) {
-            System.out.print(b ? "1":"0");
-        }
-        System.out.println();
-        System.out.println(compressedBytes.equals(compressedBytes));
-
-        LZ.decompress(compressedBytesFromFile);
-
-
-        /*
-        // COMPRESSION, RESULT WRITTEN TO FILE
-        List<Integer> result = LZ.compress(textToBytes);
-        writeToFile(result,compressedFileName);
-
-
-        //READ COMPRESSED FILE FOR DECOMPRESSION
-        List<Integer> intFromCompressedFile = readIntegersFromFile(filename);
-
-
-        //DECOMPRESS COMPRESSED FILE DATA
-        List<Integer> decompressed = LZ.decompress(intFromCompressedFile);
-
-
-        //CONVERTING DECOMPRESSED DATA INTO CHARACTERS
-        String intToString = "";
-        for (int i: decompressed) {
-            if(i > -61){
-                char c = (char)i;
-                intToString += c;
-            }else if(i < -61){
-                switch (i) {
-                    case -90 -> intToString += "æ";
-                    case -72 -> intToString += "ø";
-                    case -91 -> intToString += "å";
-                }
-            }
-        }
+        byte[] decompressedBytes = LZ.decompress(compressedBytesFromFile);
 
 
         //PRINTING OUT DECOMPRESSED RESULT AFTER CHARACTER CONVERSION
         System.out.println("\n\n--------------------");
         System.out.println("AFTER DECOMPRESSION:");
         System.out.println("--------------------");
-        System.out.println(intToString);
+        System.out.println(new String(decompressedBytes));
 
 
         //COMPRESSION RESULTS PRINTED OUT
-        System.out.println("\n\nOriginal size: " + textToBytes.length);
-        System.out.println("Compressed size: " + result.size());
-        System.out.println("Compress percentage achieved: " + String.format("%.2f%%",(1 - (double)result.size()/(double)textToBytes.length)*100));
+        System.out.format("%-32s %s %2s %s","\n\n\n+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %16s","|Original size","|",textToBytes.length,"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %16s","|Compressed size","|",compressedBytes.length,"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %15s","|Compress percentage achieved","|",String.format("%.2f%%",(1 - (double)compressedBytes.length/(double)textToBytes.length)*100),"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %16s","|Decompressed size","|",decompressedBytes.length,"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
+        System.out.format("%-32s %2s %2s %17s","|Decompressed same as original","|", Arrays.equals(decompressedBytes, textToBytes),"|\n");
+        System.out.format("%-32s %s %2s %s","+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
 
-        System.out.println("\nDecompressed size: " + decompressed.size() + "\n");
-*/
 
     }
 
