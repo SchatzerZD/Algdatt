@@ -181,28 +181,9 @@ public class Compression {
 
             Huffman.constructTree();
 
-            for (LZ row: rows) {
-                List<Boolean> leastSignificantBits = new ArrayList<>();
-                for (int j = radix; j > 0; j--) {
-                    if(!(row.content.size() < radix)){
-                        boolean leastSignificantBit = row.content.get(row.content.size()-j);
-                        leastSignificantBits.add(leastSignificantBit);
-                    }else{
-                        leastSignificantBits.addAll(row.content);
-                    }
-                }
-                System.out.println(getBitString(leastSignificantBits));
-                row.codeword.addAll(leastSignificantBits);
-            }
-
-            for (List<Boolean> b: uniqueBitStrings) {
-                System.out.println(getBitString(b));
-            }
             System.out.println();
 
-            for (LZ row: rows) {
-                System.out.printf("%16s %2s %64s %8s %64s",getBitString(row.dictLoc),"||",getBitString(row.content),"||",getBitString(row.codeword) + "           " + row.codeWordDictIndex + "\n");
-            }
+
 
             //Adds to codeword after dictionary index added
             for (LZ row: rows) {
@@ -215,10 +196,13 @@ public class Compression {
                         leastSignificantBits.addAll(row.content);
                     }
                 }
-                System.out.println(getBitString(leastSignificantBits));
-                row.codeword.addAll(Huffman.huffmanCode(Huffman.DFS(Huffman.root(),leastSignificantBits)));
+                if(row.content.size() % radix == 0){
+                    row.codeword.addAll(Huffman.huffmanCode(Huffman.DFS(Huffman.root(),leastSignificantBits)));
+                }else{
+                    row.codeWordDictIndex = -1;
+                    row.codeword.addAll(row.content);
+                }
             }
-
 
 
             for (LZ row: rows) {
@@ -229,7 +213,11 @@ public class Compression {
 
             System.out.println("\n\n");
 
-            List<Boolean> output = new ArrayList<>();
+            System.out.println(getBitString(byteToBits((byte) uniqueBitStrings.size())));
+            List<Boolean> output = new ArrayList<>(byteToBits((byte) uniqueBitStrings.size()));
+
+
+            //ADD COMPRESSED DATA INTO OUTPUT
             for (LZ row: rows) {
                 output.addAll(bitStringLengthInBits(row.codeWordDictIndex+1));
                 output.addAll(row.codeword);
@@ -241,7 +229,7 @@ public class Compression {
 
 
             System.out.println();
-            //System.out.println(getBitString(output));
+            System.out.println(getBitString(output));
 
             System.out.println(output.size()/8);
             System.out.println();
@@ -311,6 +299,17 @@ public class Compression {
             }
         }
 
+        return resultBits;
+    }
+
+    static List<Boolean> byteToBits(byte inputByte){
+        List<Boolean> resultBits = new ArrayList<>();
+
+        int value = inputByte;
+        for (int i = 0; i < 8; i++) {
+            resultBits.add((value & 128) != 0);
+            value <<= 1;
+        }
         return resultBits;
     }
 
@@ -429,13 +428,13 @@ public class Compression {
 
         System.out.println();
 
-        /*List<Boolean> bits = bytesToBits(textToBytes);
+        List<Boolean> bits = bytesToBits(textToBytes);
         for (boolean b: bits) {
             System.out.print(b ? "1":"0");
-        }*/
+        }
         System.out.println();
 
-        LZ.compress(textToBytes, 16);
+        LZ.compress(textToBytes, 8);
 
 
         /*
