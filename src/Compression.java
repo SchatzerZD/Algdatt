@@ -93,6 +93,11 @@ public class Compression {
             return result;
         }
 
+        static void reset(){
+            nodes = new ArrayList<>();
+            originalNodes = new ArrayList<>();
+        }
+
     }
 
     static class LZ{
@@ -113,6 +118,7 @@ public class Compression {
 
         static byte[] compress(byte[] input, int radix){
 
+            Huffman.reset();
             List<Boolean> inputToBits = bytesToBits(input);
             List<LZ> rows = new ArrayList<>();
             List<ArrayList<Boolean>> contentList = new ArrayList<>();
@@ -228,8 +234,8 @@ public class Compression {
                 output.addAll(row.codeword);
             }
 
-            /*System.out.println(Huffman.originalNodes.get(0).nodeValue);
-            System.out.println(uniqueBitStrings.size());
+            //System.out.println(Huffman.originalNodes.get(0).nodeValue);
+            /*System.out.println(uniqueBitStrings.size());
             System.out.println(getBitString(byteToBits((byte) uniqueBitStrings.size())));
             System.out.println(output.size()/8 + " B");*/
             System.out.println(getBitString(output));
@@ -250,6 +256,14 @@ public class Compression {
 
 
         static void decompress(byte[] compressedBytes){
+            Huffman.reset();
+            List<Boolean> compressedBitString = bytesToBits(compressedBytes);
+
+            List<Boolean> radixInBits = compressedBitString.subList(0,4);
+            int radix = bitsToInt(radixInBits)*8;
+
+            List<Boolean> numberOfCharactersInBits = compressedBitString.subList(5,4+radix);
+            int numberOfCharacters = bitsToInt(numberOfCharactersInBits);
 
 
         }
@@ -257,6 +271,14 @@ public class Compression {
 
     }
 
+    static int bitsToInt(List<Boolean> bits){
+        int b = 0;
+        int check = 1 << bits.size()-1;
+        for (int i = 0; i < bits.size(); i++) {
+            if(bits.get(i)) b |= (check >> i);
+        }
+        return b;
+    }
     static List<Boolean> bytesToBits(byte[] inputBytes){
         List<Boolean> resultBits = new ArrayList<>();
 
@@ -396,7 +418,7 @@ public class Compression {
     public static void main(String[] args) throws IOException {
         String compressedFileName = "Deflate.txt";
         //READ TEXT DATA FOR COMPRESSION
-        String filename = "diverse.txt";
+        String filename = "compressTest.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
@@ -406,12 +428,13 @@ public class Compression {
         //System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
+
         System.out.println();
 
         List<Boolean> bits = bytesToBits(textToBytes);
-        /*for (boolean b: bits) {
+        for (boolean b: bits) {
             System.out.print(b ? "1":"0");
-        }*/
+        }
         System.out.println();
         System.out.println(bits.size()/8 + " B");
         System.out.println();
@@ -426,6 +449,11 @@ public class Compression {
         for (boolean b: bitsCompressed) {
             System.out.print(b ? "1":"0");
         }
+        System.out.println();
+        System.out.println(compressedBytes.equals(compressedBytes));
+
+        LZ.decompress(compressedBytesFromFile);
+
 
         /*
         // COMPRESSION, RESULT WRITTEN TO FILE

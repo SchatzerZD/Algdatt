@@ -3,7 +3,7 @@ Next    radix       bits	    ->	Number of different characters in frequency list
 
 Repeat sequence (radix + 32) x (Number of different characters in frequency list):
 Next    radix       bits	    ->	Unique character string
-Next    32          bits	    ->	Number of occurences of unique character string
+Next    16          bits	    ->	Number of occurences of unique character string
 
 
 Repeat sequence until finished:
