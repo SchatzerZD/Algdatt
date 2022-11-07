@@ -9,6 +9,7 @@ public class Compression {
 
     class Huffman{
         static List<Node> nodes = new ArrayList<>();
+        static List<Node> originalNodes = new ArrayList<>();
         static class Node{
             int nodeValue;
             List<Boolean> codeword;
@@ -179,10 +180,11 @@ public class Compression {
             }
             //end
 
+            Huffman.sortNodesByValue();
+            Huffman.originalNodes.addAll(Huffman.nodes);
             Huffman.constructTree();
 
             System.out.println();
-
 
 
             //Adds to codeword after dictionary index added
@@ -205,17 +207,20 @@ public class Compression {
             }
 
 
-            for (LZ row: rows) {
+            /*for (LZ row: rows) {
                 System.out.printf("%16s %2s %64s %8s %64s",getBitString(row.dictLoc),"||",getBitString(row.content),"||",getBitString(row.codeword) + "           " + row.codeWordDictIndex + "\n");
-            }
+            }*/
 
 
 
             System.out.println("\n\n");
 
-            System.out.println(getBitString(byteToBits((byte) uniqueBitStrings.size())));
             List<Boolean> output = new ArrayList<>(byteToBits((byte) uniqueBitStrings.size()));
 
+            for (Huffman.Node node: Huffman.originalNodes) {
+                output.addAll(node.codeword);
+                output.addAll(intToBits32(node.nodeValue));
+            }
 
             //ADD COMPRESSED DATA INTO OUTPUT
             for (LZ row: rows) {
@@ -223,15 +228,9 @@ public class Compression {
                 output.addAll(row.codeword);
             }
 
-
-
-
-
-
-            System.out.println();
             System.out.println(getBitString(output));
 
-            System.out.println(output.size()/8);
+            System.out.println(output.size()/8 + " B");
             System.out.println();
 
 
@@ -322,6 +321,17 @@ public class Compression {
             value <<= 1;
         }
 
+        return resultBits;
+    }
+
+    static List<Boolean> intToBits32(int inputByte){
+        List<Boolean> resultBits = new ArrayList<>();
+
+        int value = inputByte;
+        for (int i = 0; i < 32; i++) {
+            resultBits.add((value & (long)Integer.MAX_VALUE + 1) != 0);
+            value <<= 1;
+        }
         return resultBits;
     }
 
@@ -433,6 +443,7 @@ public class Compression {
             System.out.print(b ? "1":"0");
         }
         System.out.println();
+        System.out.println(bits.size()/8 + " B");
 
         LZ.compress(textToBytes, 8);
 
