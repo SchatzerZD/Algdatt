@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Compression {
 
-    class Huffman{
+    static class Huffman{
         static List<Node> nodes = new ArrayList<>();
         static List<Node> originalNodes = new ArrayList<>();
         static class Node{
@@ -107,9 +107,6 @@ public class Compression {
     }
 
     static class LZ{
-
-        static final int SIZE = 256;
-
         List<Boolean> dictLoc;
         List<Boolean> content;
         List<Boolean> codeword;
@@ -372,17 +369,6 @@ public class Compression {
         return true;
     }
 
-    static List<Boolean> byteToBits(byte inputByte){
-        List<Boolean> resultBits = new ArrayList<>();
-
-        int value = inputByte;
-        for (int i = 0; i < 8; i++) {
-            resultBits.add((value & 128) != 0);
-            value <<= 1;
-        }
-        return resultBits;
-    }
-
     static List<Boolean> intToBits(int inputByte){
         List<Boolean> resultBits = new ArrayList<>();
 
@@ -419,22 +405,6 @@ public class Compression {
 
         return resultBits;
     }
-
-    static byte booleanArrayToByte(List<Boolean> booleanArrayList){
-        byte b = 0;
-        for (int i = booleanArrayList.size(); i > 0; i--) {
-            if(booleanArrayList.get(booleanArrayList.size()-i)) b |= (1<<i-1);
-        }
-        return b;
-    }
-
-    static String getBitString(boolean[] bits){
-        StringBuilder returnString = new StringBuilder();
-        for (boolean b: bits) {
-            returnString.append(b ? "1":"0");
-        }
-        return String.valueOf(returnString);
-    }
     static String getBitString(List<Boolean> bits){
         StringBuilder returnString = new StringBuilder();
         for (boolean b: bits) {
@@ -442,15 +412,7 @@ public class Compression {
         }
         return String.valueOf(returnString);
     }
-    static byte booleanToByte(boolean[] array) {
-        byte val = 0;
-        for (boolean b : array) {
-            val <<= 1;
-            if (b)
-                val |= 1;
-        }
-        return val;
-    }
+
 
     static void writeToFile(byte[] byteInput, String filename){
         try {
@@ -467,55 +429,31 @@ public class Compression {
         }
     }
 
-    static List<Integer> readIntegersFromFile(String filename){
-        List<Integer> resultList = new ArrayList<>();
-            try{
-                DataInputStream inFile = new DataInputStream(new FileInputStream(filename));
-                int i;
-                while((i=inFile.read())!= -1){
-                    if(i==1){
-                        i = inFile.read();
-                        resultList.add(i+LZ.SIZE);
-                    }else if(i>Byte.MAX_VALUE){
-                        resultList.add(i-LZ.SIZE);
-                    }
-                    else{
-                        resultList.add(i);
-                    }
-                }
-
-            }catch (IOException e){
-                System.out.println("An error occurred.");
-                e.printStackTrace();
-            }
-
-        return resultList;
-
-    }
-
 
     public static void main(String[] args) throws IOException {
-        String compressedFileName = "Deflate.txt";
+        String compressedFileName = "Compressed_LZ.txt";
         //READ TEXT DATA FOR COMPRESSION
-        String filename = "compressTest.txt";
+        String filename = "diverse.lyx";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
         System.out.println("--------------------");
         System.out.println("BEFORE COMPRESSION:");
         System.out.println("--------------------");
-        System.out.println(contentFromFile);
+        //System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
 
         System.out.println();
 
+        //COMPRESS DATA AND WRITE TO FILE
         byte[] compressedBytes = LZ.compress(textToBytes,8);
         writeToFile(compressedBytes, compressedFileName);
-        System.out.println(compressedBytes.length + " B");
 
+        //RETRIEVE BYTES FROM COMPRESSED FILE
         byte[] compressedBytesFromFile = Files.readAllBytes(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + compressedFileName));
 
+        //DECOMPRESS COMPRESSED DATA
         byte[] decompressedBytes = LZ.decompress(compressedBytesFromFile);
 
 
@@ -523,7 +461,7 @@ public class Compression {
         System.out.println("\n\n--------------------");
         System.out.println("AFTER DECOMPRESSION:");
         System.out.println("--------------------");
-        System.out.println(new String(decompressedBytes));
+        //System.out.println(new String(decompressedBytes));
 
 
         //COMPRESSION RESULTS PRINTED OUT
