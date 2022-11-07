@@ -1,0 +1,16 @@
+First       4       bits        ->  Value of 4 bits multiplied by 8 equals radix
+Next    radix       bits	    ->	Number of different characters in frequency list
+
+Repeat sequence (radix + 32) x (Number of different characters in frequency list):
+Next    radix       bits	    ->	Unique character string
+Next    16          bits	    ->	Number of occurences of unique character string
+
+
+Repeat sequence until finished:
+Next    5           bits	    -> 	Number of bits ahead the starting point of huffman code
+				                    Bits between represent dictionary index
+-Decode huffmancode into binary string
+-Insert binary string together with dictionary index into dictionary
+ for Lempel-ziv decoding
+-If Next 5 bits equals 0; Insert the rest of the bits into decompressed result
+				
