@@ -432,19 +432,13 @@ public class Compression {
 
     public static void main(String[] args) throws IOException {
         String compressedFileName = "Compressed_LZ.txt";
+
         //READ TEXT DATA FOR COMPRESSION
         String filename = "diverse.lyx";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
-
-        System.out.println("--------------------");
-        System.out.println("BEFORE COMPRESSION:");
-        System.out.println("--------------------");
-        //System.out.println(contentFromFile);
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
-
-        System.out.println();
 
         //COMPRESS DATA AND WRITE TO FILE
         byte[] compressedBytes = LZ.compress(textToBytes,8);
@@ -455,14 +449,6 @@ public class Compression {
 
         //DECOMPRESS COMPRESSED DATA
         byte[] decompressedBytes = LZ.decompress(compressedBytesFromFile);
-
-
-        //PRINTING OUT DECOMPRESSED RESULT AFTER CHARACTER CONVERSION
-        System.out.println("\n\n--------------------");
-        System.out.println("AFTER DECOMPRESSION:");
-        System.out.println("--------------------");
-        //System.out.println(new String(decompressedBytes));
-
 
         //COMPRESSION RESULTS PRINTED OUT
         System.out.format("%-32s %s %2s %s","\n\n\n+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
