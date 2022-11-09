@@ -191,6 +191,7 @@ public class Compression {
 
             Huffman.sortNodesByValue();
             Huffman.originalNodes.addAll(Huffman.nodes);
+
             Huffman.constructTree();
 
             System.out.println();
@@ -224,7 +225,7 @@ public class Compression {
 
             output.addAll(intToBitsN(radix/8,4));
 
-            output.addAll(intToBitsN(uniqueBitStrings.size(), radix));
+            output.addAll(intToBitsN(uniqueBitStrings.size()-1, radix));
 
             for (Huffman.Node node: Huffman.originalNodes) {
                 output.addAll(node.codeword);
@@ -252,7 +253,7 @@ public class Compression {
             List<LZ> rows = new ArrayList<>();
 
             int radix = bitsToInt(compressedBitString.subList(0,4))*8;
-            int numberOfCharacters = bitsToInt(compressedBitString.subList(4,4+radix));
+            int numberOfCharacters = bitsToInt(compressedBitString.subList(4,4+radix)) + 1;
             int position = 4+radix;
 
 
@@ -438,10 +439,7 @@ public class Compression {
         //READ TEXT DATA FOR COMPRESSION
         String filename = "diverse.lyx";
         String compressedFileName = filename + "_compressed.txt";
-        String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
-
-
-        byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
+        byte[] textToBytes = Files.readAllBytes(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
         //COMPRESS DATA AND WRITE TO FILE
