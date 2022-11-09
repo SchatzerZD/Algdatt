@@ -434,11 +434,12 @@ public class Compression {
 
 
     public static void main(String[] args) throws IOException {
-        String compressedFileName = "Compressed_LZ.txt";
 
         //READ TEXT DATA FOR COMPRESSION
         String filename = "diverse.lyx";
+        String compressedFileName = filename + "_compressed.txt";
         String contentFromFile = Files.readString(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
+
 
         byte[] textToBytes = contentFromFile.getBytes(StandardCharsets.UTF_8);
 
