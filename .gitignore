@@ -1,5 +1,5 @@
 .idea/
-.out/
+out/
 *.txt
 *.lyx
 diverse.lyx
