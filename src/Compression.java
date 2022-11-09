@@ -191,7 +191,6 @@ public class Compression {
 
             Huffman.sortNodesByValue();
             Huffman.originalNodes.addAll(Huffman.nodes);
-
             Huffman.constructTree();
 
             System.out.println();
@@ -437,20 +436,20 @@ public class Compression {
     public static void main(String[] args) throws IOException {
 
         //READ TEXT DATA FOR COMPRESSION
-        String filename = "diverse.lyx";
-        String compressedFileName = filename + "_compressed.txt";
+        String filename = "diverse.pdf";
         byte[] textToBytes = Files.readAllBytes(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename));
 
 
         //COMPRESS DATA AND WRITE TO FILE
         byte[] compressedBytes = LZ.compress(textToBytes,8);
-        writeToFile(compressedBytes, compressedFileName);
+        writeToFile(compressedBytes, filename + "_compressed.txt");
 
         //RETRIEVE BYTES FROM COMPRESSED FILE
-        byte[] compressedBytesFromFile = Files.readAllBytes(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + compressedFileName));
+        byte[] compressedBytesFromFile = Files.readAllBytes(Path.of(System.getProperty("user.dir") + System.getProperty("file.separator") + filename + "_compressed.txt"));
 
         //DECOMPRESS COMPRESSED DATA
         byte[] decompressedBytes = LZ.decompress(compressedBytesFromFile);
+        writeToFile(decompressedBytes, filename + "_decompressed.txt");
 
         //COMPRESSION RESULTS PRINTED OUT
         System.out.format("%-32s %s %2s %s","\n\n\n+ " + "-".repeat(31),"+","-".repeat(19),"+\n");
