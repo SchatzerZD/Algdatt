@@ -332,17 +332,15 @@ public class Compression {
 
         }
 
-        static void divideListIntoBytes(List<Boolean> list, byte[] byteListOutput) {
-            for (int i = 0; i < byteListOutput.length; i++) {
-                byte b = 0;
-                for (int j = 0; j < 8; j++) {
-                    if((i*8)+j < list.size() && list.get((i*8)+j)) b |= (128 >> j);
-                }
-                byteListOutput[i] = b;
+    }
+    static void divideListIntoBytes(List<Boolean> list, byte[] byteListOutput) {
+        for (int i = 0; i < byteListOutput.length; i++) {
+            byte b = 0;
+            for (int j = 0; j < 8; j++) {
+                if((i*8)+j < list.size() && list.get((i*8)+j)) b |= (128 >> j);
             }
+            byteListOutput[i] = b;
         }
-
-
     }
 
     static int bitsToInt(List<Boolean> bits){

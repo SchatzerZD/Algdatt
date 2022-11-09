@@ -17,9 +17,9 @@ public class CompressionHuff {
             while ((i = inFile.read()) != -1) {
                 if (i == 1) {
                     i = inFile.read();
-                    resultList.add(i + Compression.LZ.SIZE);
+                    resultList.add(i + 256);
                 } else if (i > Byte.MAX_VALUE) {
-                    resultList.add(i - Compression.LZ.SIZE);
+                    resultList.add(i - 256);
                 } else {
                     resultList.add(i);
                 }
