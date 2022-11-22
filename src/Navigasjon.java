@@ -183,6 +183,17 @@ public class Navigasjon {
       printWriter.close();
     }
 
+    void writeCoordsToFile(String filename, Node node)throws IOException {
+      PrintWriter printWriter = new PrintWriter(filename, StandardCharsets.UTF_8);
+
+      Node currentNode = node;
+      while(currentNode != null){
+        printWriter.println(currentNode.latitude + "," + currentNode.longtitude + "," + currentNode.nodeNr);
+        currentNode = currentNode.previousNode;
+      }
+      printWriter.close();
+    }
+
 
 
   }
@@ -207,16 +218,14 @@ public class Navigasjon {
 
     System.out.println("Graph created");
 
-    graph.start(graph.nodeList[0],graph.nodeList[4]);
+    Node destinationNode = graph.nodeList[50];
+    graph.start(graph.nodeList[0],destinationNode);
 
     System.out.println();
     System.out.println();
 
-    Node currentNode = graph.nodeList[4];
-    while(currentNode != null){
-      System.out.println(currentNode.nodeNr);
-      currentNode = currentNode.previousNode;
-    }
+    graph.writeCoordsToFile("coords.txt",destinationNode);
+    System.out.println(destinationNode.distance);
 
 
 
