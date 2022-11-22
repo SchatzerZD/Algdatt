@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class Navigasjon {
@@ -16,6 +13,8 @@ public class Navigasjon {
     byte code;
     String name;
     Node previousNode;
+    boolean visited;
+    int heuristicValue;
 
 
 
@@ -30,6 +29,7 @@ public class Navigasjon {
       this.code = 0;
       this.name = null;
       this.previousNode = null;
+      this.visited = false;
     }
 
     void addEdge(Edge edge){
@@ -66,37 +66,65 @@ public class Navigasjon {
     Queue<Node> nodePriorityQueue = new PriorityQueue<>();
     Node[] nodeList;
 
+    void init(){
+      for (Node node: nodeList) {
+        node.distance = Integer.MAX_VALUE;
+        node.previousNode = null;
+      }
+    }
+
+
     void start(Node startNode, Node destinationNode){
       startNode.distance = 0;
       dijkstra(startNode,destinationNode);
     }
 
+    void start(Node startNode){
+      startNode.distance = 0;
+      dijkstra(startNode);
+    }
+
     void dijkstra(Node startNode, Node destinationNode){
 
       nodePriorityQueue.add(startNode);
-      List<Node> visitedNodes = new ArrayList<>();
 
       Node currentNode;
       while(nodePriorityQueue.peek() != destinationNode){
         currentNode = nodePriorityQueue.remove();
-        visitedNodes.add(currentNode);
+        currentNode.visited = true;
 
         for (Edge edge : currentNode.edges) {
-          if(currentNode.distance + edge.weight < edge.toNode.distance){
+          if(!edge.toNode.visited && currentNode.distance + edge.weight < edge.toNode.distance){
             edge.toNode.distance = currentNode.distance + edge.weight;
             edge.toNode.previousNode = edge.fromNode;
-          }
-
-          if(!visitedNodes.contains(edge.toNode)){
             nodePriorityQueue.add(edge.toNode);
           }
         }
 
-        System.out.printf("%d %d\n",nodePriorityQueue.element().nodeNr,nodePriorityQueue.element().distance);
+       // System.out.printf("%d %d\n",nodePriorityQueue.element().nodeNr,nodePriorityQueue.element().distance);
+
 
       }
+    }
 
+    void dijkstra(Node startNode){
 
+      nodePriorityQueue.add(startNode);
+      Node currentNode;
+
+      while(nodePriorityQueue.peek() != null){
+        currentNode = nodePriorityQueue.remove();
+        currentNode.visited = true;
+
+        for (Edge edge : currentNode.edges) {
+          if(!edge.toNode.visited && currentNode.distance + edge.weight < edge.toNode.distance){
+            edge.toNode.distance = currentNode.distance + edge.weight;
+            edge.toNode.previousNode = edge.fromNode;
+            nodePriorityQueue.add(edge.toNode);
+          }
+        }
+       //System.out.printf("%d %d\n",nodePriorityQueue.element().nodeNr,nodePriorityQueue.element().distance);
+      }
     }
 
     void createNodes(BufferedReader br) throws IOException {
@@ -131,7 +159,7 @@ public class Navigasjon {
       }
     }
 
-    void createLandmarks(BufferedReader br)throws IOException{
+    void createInterestNodes(BufferedReader br)throws IOException{
       StringTokenizer st = new StringTokenizer(br.readLine());
 
       L = Integer.parseInt(st.nextToken());
@@ -141,6 +169,13 @@ public class Navigasjon {
         landmarkNode.code = Byte.parseByte(st.nextToken());
         landmarkNode.name = st.nextToken();
       }
+    }
+
+    void writeToFile(String filename) throws IOException {
+
+      File file = new File(filename);
+      file.createNewFile();
+
     }
 
 
@@ -154,16 +189,18 @@ public class Navigasjon {
 
     String nodeFileName = "noder.txt";
     String edgeFileName = "kanter.txt";
-    String landmarkFileName = "interessepkt.txt";
+    String interestFileName = "interessepkt.txt";
 
     BufferedReader nodesBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + nodeFileName));
     BufferedReader edgeBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + edgeFileName));
-    BufferedReader landmarkBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + landmarkFileName));
+    BufferedReader interestBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + interestFileName));
+
+
 
     DijkstraAlt graph = new DijkstraAlt();
     graph.createNodes(nodesBr);
     graph.createEdges(edgeBr);
-    graph.createLandmarks(landmarkBr);
+    graph.createInterestNodes(interestBr);
 
     System.out.println("Graph created");
 
@@ -172,11 +209,13 @@ public class Navigasjon {
     System.out.println();
     System.out.println();
 
-    Node currentNode = graph.nodeList[4];
+    /*Node currentNode = graph.nodeList[4];
     while(currentNode != null){
-      System.out.printf("%d \n",currentNode.nodeNr);
+      System.out.println(currentNode.nodeNr);
       currentNode = currentNode.previousNode;
-    }
+    }*/
+
+
 
   }
 
