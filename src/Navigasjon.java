@@ -15,10 +15,9 @@ public class Navigasjon {
     byte code;
     String name;
     Node previousNode;
-    boolean visited;
+    boolean inQueue;
 
     int estDest;
-    int priority;
 
     Node(int nodeNr, double latitude, double longtitude){
       this.nodeNr = nodeNr;
@@ -31,7 +30,7 @@ public class Navigasjon {
       this.code = 0;
       this.name = null;
       this.previousNode = null;
-      this.visited = false;
+      this.inQueue = false;
       this.estDest = 0;
     }
 
@@ -39,13 +38,15 @@ public class Navigasjon {
       edges.add(edge);
     }
 
+    int getPriority(){
+      return estDest + distance;
+    }
+
 
     @Override
     public int compareTo(Node o) {
-      this.priority = this.estDest + this.distance;
-      o.priority = o.estDest + o.distance;
-      if(this.priority == o.priority) return 0;
-      return (this.priority > o.priority) ? 1 : -1;
+      if(this.getPriority() == o.getPriority()) return 0;
+      return (this.getPriority() > o.getPriority()) ? 1 : -1;
     }
 
   }
@@ -77,7 +78,7 @@ public class Navigasjon {
       for (Node node: nodeList) {
         node.distance = Integer.MAX_VALUE;
         node.previousNode = null;
-        node.visited = false;
+        node.inQueue = false;
         node.estDest = 0;
       }
     }
@@ -90,16 +91,18 @@ public class Navigasjon {
       Node currentNode;
       while(nodePriorityQueue.peek() != destinationNode){
         currentNode = nodePriorityQueue.remove();
-        currentNode.visited = true;
+        currentNode.inQueue = true;
 
         for (Edge edge : currentNode.edges) {
-          if(!edge.toNode.visited){
-            if(currentNode.distance + edge.weight < edge.toNode.distance){
-              edge.toNode.distance = currentNode.distance + edge.weight;
-              edge.toNode.previousNode = edge.fromNode;
+          if(currentNode.distance + edge.weight < edge.toNode.distance){
+            edge.toNode.distance = currentNode.distance + edge.weight;
+            edge.toNode.previousNode = edge.fromNode;
+            if(edge.toNode.inQueue && nodePriorityQueue.remove(edge.toNode)){
+              nodePriorityQueue.add(edge.toNode);
+            }else{
+              nodePriorityQueue.add(edge.toNode);
+              edge.toNode.inQueue = true;
             }
-            nodePriorityQueue.remove(edge.toNode);
-            nodePriorityQueue.add(edge.toNode);
           }
         }
 
@@ -117,16 +120,18 @@ public class Navigasjon {
 
       while(nodePriorityQueue.peek() != null){
         currentNode = nodePriorityQueue.remove();
-        currentNode.visited = true;
+        currentNode.inQueue = true;
 
         for (Edge edge : currentNode.edges) {
-          if(!edge.toNode.visited){
-            if(currentNode.distance + edge.weight < edge.toNode.distance){
-              edge.toNode.distance = currentNode.distance + edge.weight;
-              edge.toNode.previousNode = edge.fromNode;
+          if(currentNode.distance + edge.weight < edge.toNode.distance){
+            edge.toNode.distance = currentNode.distance + edge.weight;
+            edge.toNode.previousNode = edge.fromNode;
+            if(edge.toNode.inQueue && nodePriorityQueue.remove(edge.toNode)){
+              nodePriorityQueue.add(edge.toNode);
+            }else{
+              nodePriorityQueue.add(edge.toNode);
+              edge.toNode.inQueue = true;
             }
-            nodePriorityQueue.remove(edge.toNode);
-            nodePriorityQueue.add(edge.toNode);
           }
         }
        //System.out.printf("%d %d\n",nodePriorityQueue.element().nodeNr,nodePriorityQueue.element().distance);
@@ -138,8 +143,32 @@ public class Navigasjon {
       List<String> fromLandmarkLines = getLinesFromFile(fromLandmarksFileName);
       List<String> toLandmarkLines = getLinesFromFile(toLandmarksFileName);
 
-      System.out.println(getBestEstimate(startNode,destinationNode,fromLandmarkLines,toLandmarkLines));
+      startNode.distance = 0;
+      startNode.estDest = getBestEstimate(startNode,destinationNode,fromLandmarkLines,toLandmarkLines);
+      nodePriorityQueue.add(startNode);
 
+      Node currentNode;
+      while(nodePriorityQueue.peek() != destinationNode){
+        currentNode = nodePriorityQueue.remove();
+        currentNode.inQueue = true;
+
+        for (Edge edge: currentNode.edges) {
+          Node adjNode = edge.toNode;
+          if((edge.weight + currentNode.distance) < adjNode.distance){
+            adjNode.distance = edge.weight + currentNode.distance;
+            adjNode.previousNode = currentNode;
+            if(adjNode.inQueue && nodePriorityQueue.remove(adjNode)){
+              nodePriorityQueue.add(adjNode);
+            }
+          }
+          if(adjNode.estDest == 0)adjNode.estDest = getBestEstimate(adjNode,destinationNode,fromLandmarkLines,toLandmarkLines);
+
+          if(!adjNode.inQueue){
+            nodePriorityQueue.add(adjNode);
+            adjNode.inQueue = true;
+          }
+        }
+      }
     }
 
 
@@ -294,6 +323,18 @@ public class Navigasjon {
       }
       printWriter.close();
     }
+
+    void printNodePath(Node node){
+
+      Node currentNode = node;
+      while(currentNode != null){
+        System.out.print(currentNode.nodeNr + ((currentNode.previousNode != null) ? "-" : ""));
+        currentNode = currentNode.previousNode;
+      }
+      System.out.println();
+
+    }
+
   }
 
 
@@ -318,40 +359,29 @@ public class Navigasjon {
     graph.createInterestNodes(interestBr);
     System.out.println("Graph created");
 
-    /*graph.createLandmarks("fromLandmarks.csv");
+/*    graph.createLandmarks("fromLandmarks.csv");
     graph.createOppositeEdges(edgeOBr);
     graph.createLandmarks("toLandmarks.csv");*/
 
     graph.init();
-    graph.alt(graph.nodeList[0],graph.nodeList[2],"fromLandmarks.csv","toLandmarks.csv");
-    graph.init();
-    graph.dijkstra(graph.nodeList[0],graph.nodeList[2]);
-    System.out.println(graph.nodeList[2].distance);
-
-    graph.init();
     graph.alt(graph.nodeList[0],graph.nodeList[4],"fromLandmarks.csv","toLandmarks.csv");
+
+    graph.printNodePath(graph.nodeList[4]);
+    System.out.println();
+    System.out.println(graph.nodeList[4].distance);
+    System.out.println();
+
     graph.init();
     graph.dijkstra(graph.nodeList[0],graph.nodeList[4]);
+
+    graph.printNodePath(graph.nodeList[4]);
+    System.out.println();
     System.out.println(graph.nodeList[4].distance);
 
-    graph.init();
-    graph.alt(graph.nodeList[0],graph.nodeList[33],"fromLandmarks.csv","toLandmarks.csv");
-    graph.init();
-    graph.dijkstra(graph.nodeList[0],graph.nodeList[33]);
-    System.out.println(graph.nodeList[33].distance);
 
-    graph.init();
-    graph.alt(graph.nodeList[5],graph.nodeList[7],"fromLandmarks.csv","toLandmarks.csv");
-    graph.init();
-    graph.dijkstra(graph.nodeList[5],graph.nodeList[7]);
-    System.out.println(graph.nodeList[7].distance);
-
-    /*for (Node node: graph.nodeList) {
+/*for (Node node: graph.nodeList) {
       System.out.print((node.distance == Integer.MAX_VALUE) ? node.nodeNr + "\t" + node.distance + "\n" : "                  \r");
     }*/
-
-
-
 
 
   }
