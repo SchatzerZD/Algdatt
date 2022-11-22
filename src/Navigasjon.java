@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Navigasjon {
@@ -97,6 +98,7 @@ public class Navigasjon {
           if(!edge.toNode.visited && currentNode.distance + edge.weight < edge.toNode.distance){
             edge.toNode.distance = currentNode.distance + edge.weight;
             edge.toNode.previousNode = edge.fromNode;
+            nodePriorityQueue.remove(edge.toNode);
             nodePriorityQueue.add(edge.toNode);
           }
         }
@@ -120,6 +122,7 @@ public class Navigasjon {
           if(!edge.toNode.visited && currentNode.distance + edge.weight < edge.toNode.distance){
             edge.toNode.distance = currentNode.distance + edge.weight;
             edge.toNode.previousNode = edge.fromNode;
+            nodePriorityQueue.remove(edge.toNode);
             nodePriorityQueue.add(edge.toNode);
           }
         }
@@ -172,10 +175,12 @@ public class Navigasjon {
     }
 
     void writeToFile(String filename) throws IOException {
+      PrintWriter printWriter = new PrintWriter(filename, StandardCharsets.UTF_8);
 
-      File file = new File(filename);
-      file.createNewFile();
-
+      for (Node node : nodeList) {
+        printWriter.println(node.latitude + "," + node.longtitude + "," + node.nodeNr);
+      }
+      printWriter.close();
     }
 
 
@@ -195,8 +200,6 @@ public class Navigasjon {
     BufferedReader edgeBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + edgeFileName));
     BufferedReader interestBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + interestFileName));
 
-
-
     DijkstraAlt graph = new DijkstraAlt();
     graph.createNodes(nodesBr);
     graph.createEdges(edgeBr);
@@ -209,11 +212,11 @@ public class Navigasjon {
     System.out.println();
     System.out.println();
 
-    /*Node currentNode = graph.nodeList[4];
+    Node currentNode = graph.nodeList[4];
     while(currentNode != null){
       System.out.println(currentNode.nodeNr);
       currentNode = currentNode.previousNode;
-    }*/
+    }
 
 
 
