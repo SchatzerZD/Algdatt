@@ -150,11 +150,16 @@ public class Navigasjon {
 
         nodeList[nodeNr] = new Node(nodeNr,lat,lon);
       }
+      br.close();
 
     }
 
     void createEdges(BufferedReader br) throws IOException{
       StringTokenizer st = new StringTokenizer(br.readLine());
+
+      for (Node node: nodeList) {
+        node.edges.clear();
+      }
 
       K = Integer.parseInt(st.nextToken());
       for (int i = 0; i < K; i++) {
@@ -166,6 +171,27 @@ public class Navigasjon {
         fromNode.addEdge(edge);
 
       }
+      br.close();
+    }
+
+    void createOppositeEdges(BufferedReader br) throws IOException{
+      StringTokenizer st = new StringTokenizer(br.readLine());
+
+      for (Node node: nodeList) {
+        node.edges.clear();
+      }
+
+      K = Integer.parseInt(st.nextToken());
+      for (int i = 0; i < K; i++) {
+        st = new StringTokenizer(br.readLine());
+        Node toNode = nodeList[Integer.parseInt(st.nextToken())];
+        Node fromNode = nodeList[Integer.parseInt(st.nextToken())];
+        int weight = Integer.parseInt(st.nextToken());
+        Edge edge = new Edge(weight,fromNode,toNode);
+        fromNode.addEdge(edge);
+
+      }
+      br.close();
     }
 
     void createInterestNodes(BufferedReader br)throws IOException{
@@ -178,25 +204,23 @@ public class Navigasjon {
         landmarkNode.code = Byte.parseByte(st.nextToken());
         landmarkNode.name = st.nextToken();
       }
-    }
-
-    void createLandmarks(String filename)throws IOException{
+      br.close();
 
       landmarkNodes.add(nodeList[894067]); //Helsinki
       landmarkNodes.add(nodeList[3109952]); //Tromsø
       landmarkNodes.add(nodeList[5474505]); //Stockholm
       landmarkNodes.add(nodeList[2315409]); //Mandal
       landmarkNodes.add(nodeList[4677168]); //Bergen
+    }
 
+    void createLandmarks(String filename)throws IOException{
       String[][] landmarkDistanceTable = new String[landmarkNodes.size()][N];
 
       for (int i = 0; i < landmarkNodes.size(); i++) {
         init();
         start(landmarkNodes.get(i));
+        System.out.println("Landmark: " + i);
         for (int j = 0; j < N; j++) {
-          if(nodeList[j].distance == Integer.MAX_VALUE){
-            System.out.println("Landmark: " + i + "\tNode: " + j);
-          }
           landmarkDistanceTable[i][j] = String.valueOf(nodeList[j].distance);
         }
       }
@@ -215,6 +239,8 @@ public class Navigasjon {
       printWriter.close();
 
     }
+
+
 
     void writeToFile(String filename) throws IOException {
       PrintWriter printWriter = new PrintWriter(filename, StandardCharsets.UTF_8);
@@ -252,12 +278,18 @@ public class Navigasjon {
     BufferedReader edgeBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + edgeFileName));
     BufferedReader interestBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + interestFileName));
 
+    BufferedReader edgeOBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + edgeFileName));
+
     DijkstraAlt graph = new DijkstraAlt();
+
     graph.createNodes(nodesBr);
     graph.createEdges(edgeBr);
     graph.createInterestNodes(interestBr);
+    System.out.println("Graph created");
 
-    //graph.createLandmarks("landmarks.csv");
+    /*graph.createLandmarks("fromLandmarks.csv");
+    graph.createOppositeEdges(edgeOBr);
+    graph.createLandmarks("toLandmarks.csv");*/
 
     graph.start(graph.nodeList[0]);
 
@@ -265,7 +297,7 @@ public class Navigasjon {
       System.out.print((node.distance == Integer.MAX_VALUE) ? node.nodeNr + "\t" + node.distance + "\n" : "                  \r");
     }*/
 
-    System.out.println("Graph created");
+
 
 
 
