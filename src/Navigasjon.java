@@ -1,9 +1,10 @@
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class Navigasjon {
-
   static class Node implements Comparable<Node> {
 
     int distance;
@@ -15,9 +16,9 @@ public class Navigasjon {
     String name;
     Node previousNode;
     boolean visited;
-    int heuristicValue;
 
-
+    int estDest;
+    int priority;
 
     Node(int nodeNr, double latitude, double longtitude){
       this.nodeNr = nodeNr;
@@ -31,6 +32,7 @@ public class Navigasjon {
       this.name = null;
       this.previousNode = null;
       this.visited = false;
+      this.estDest = 0;
     }
 
     void addEdge(Edge edge){
@@ -40,8 +42,10 @@ public class Navigasjon {
 
     @Override
     public int compareTo(Node o) {
-      if(this.distance == o.distance) return 0;
-      return (this.distance > o.distance) ? 1 : -1;
+      this.priority = this.estDest + this.distance;
+      o.priority = o.estDest + o.distance;
+      if(this.priority == o.priority) return 0;
+      return (this.priority > o.priority) ? 1 : -1;
     }
 
   }
@@ -69,25 +73,17 @@ public class Navigasjon {
     Node[] nodeList;
 
     void init(){
+      nodePriorityQueue.clear();
       for (Node node: nodeList) {
         node.distance = Integer.MAX_VALUE;
         node.previousNode = null;
         node.visited = false;
+        node.estDest = 0;
       }
     }
 
-
-    void start(Node startNode, Node destinationNode){
-      startNode.distance = 0;
-      dijkstra(startNode,destinationNode);
-    }
-
-    void start(Node startNode){
-      startNode.distance = 0;
-      dijkstra(startNode);
-    }
-
     void dijkstra(Node startNode, Node destinationNode){
+      startNode.distance = 0;
 
       nodePriorityQueue.add(startNode);
 
@@ -114,6 +110,7 @@ public class Navigasjon {
     }
 
     void dijkstra(Node startNode){
+      startNode.distance = 0;
 
       nodePriorityQueue.add(startNode);
       Node currentNode;
@@ -134,6 +131,41 @@ public class Navigasjon {
         }
        //System.out.printf("%d %d\n",nodePriorityQueue.element().nodeNr,nodePriorityQueue.element().distance);
       }
+    }
+
+
+    void alt(Node startNode, Node destinationNode, String fromLandmarksFileName, String toLandmarksFileName) throws IOException {
+      List<String> fromLandmarkLines = getLinesFromFile(fromLandmarksFileName);
+      List<String> toLandmarkLines = getLinesFromFile(toLandmarksFileName);
+
+      System.out.println(getBestEstimate(startNode,destinationNode,fromLandmarkLines,toLandmarkLines));
+
+    }
+
+
+    int getBestEstimate(Node startNode, Node destinationNode,List<String> fromLandmarkLines, List<String> toLandmarkLines){
+      int bestEstimateToDestination = -1;
+      for (int i = 0; i < landmarkNodes.size(); i++) {
+        int distanceFromLandmarkToDestination = Integer.parseInt(fromLandmarkLines.get(destinationNode.nodeNr).split(",")[i]);
+        int distanceFromLandmarkToStart = Integer.parseInt(fromLandmarkLines.get(startNode.nodeNr).split(",")[i]);
+
+        int differenceFromLandmark = distanceFromLandmarkToDestination - distanceFromLandmarkToStart;
+        if(differenceFromLandmark < 0)differenceFromLandmark = 0;
+
+
+        int distanceFromStartToLandmark = Integer.parseInt(toLandmarkLines.get(startNode.nodeNr).split(",")[i]);
+        int distanceFromDestinationToLandmark = Integer.parseInt(toLandmarkLines.get(destinationNode.nodeNr).split(",")[i]);
+
+        int differenceToLandmark = distanceFromStartToLandmark - distanceFromDestinationToLandmark;
+
+        int biggestNumber = Math.max(differenceFromLandmark, differenceToLandmark);
+        bestEstimateToDestination = Math.max(bestEstimateToDestination, biggestNumber);
+      }
+      return bestEstimateToDestination;
+    }
+
+    List<String> getLinesFromFile(String fileName) throws IOException {
+      return Files.readAllLines(Path.of(fileName));
     }
 
     void createNodes(BufferedReader br) throws IOException {
@@ -218,13 +250,12 @@ public class Navigasjon {
 
       for (int i = 0; i < landmarkNodes.size(); i++) {
         init();
-        start(landmarkNodes.get(i));
+        dijkstra(landmarkNodes.get(i));
         System.out.println("Landmark: " + i);
         for (int j = 0; j < N; j++) {
           landmarkDistanceTable[i][j] = String.valueOf(nodeList[j].distance);
         }
       }
-      init();
 
       PrintWriter printWriter = new PrintWriter(filename, StandardCharsets.UTF_8);
       for (int i = 0; i < N; i++) {
@@ -291,7 +322,29 @@ public class Navigasjon {
     graph.createOppositeEdges(edgeOBr);
     graph.createLandmarks("toLandmarks.csv");*/
 
-    graph.start(graph.nodeList[0]);
+    graph.init();
+    graph.alt(graph.nodeList[0],graph.nodeList[2],"fromLandmarks.csv","toLandmarks.csv");
+    graph.init();
+    graph.dijkstra(graph.nodeList[0],graph.nodeList[2]);
+    System.out.println(graph.nodeList[2].distance);
+
+    graph.init();
+    graph.alt(graph.nodeList[0],graph.nodeList[4],"fromLandmarks.csv","toLandmarks.csv");
+    graph.init();
+    graph.dijkstra(graph.nodeList[0],graph.nodeList[4]);
+    System.out.println(graph.nodeList[4].distance);
+
+    graph.init();
+    graph.alt(graph.nodeList[0],graph.nodeList[33],"fromLandmarks.csv","toLandmarks.csv");
+    graph.init();
+    graph.dijkstra(graph.nodeList[0],graph.nodeList[33]);
+    System.out.println(graph.nodeList[33].distance);
+
+    graph.init();
+    graph.alt(graph.nodeList[5],graph.nodeList[7],"fromLandmarks.csv","toLandmarks.csv");
+    graph.init();
+    graph.dijkstra(graph.nodeList[5],graph.nodeList[7]);
+    System.out.println(graph.nodeList[7].distance);
 
     /*for (Node node: graph.nodeList) {
       System.out.print((node.distance == Integer.MAX_VALUE) ? node.nodeNr + "\t" + node.distance + "\n" : "                  \r");
