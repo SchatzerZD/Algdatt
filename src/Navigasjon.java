@@ -65,12 +65,14 @@ public class Navigasjon {
     int N,K,L;
 
     Queue<Node> nodePriorityQueue = new PriorityQueue<>();
+    List<Node> landmarkNodes = new ArrayList<>();
     Node[] nodeList;
 
     void init(){
       for (Node node: nodeList) {
         node.distance = Integer.MAX_VALUE;
         node.previousNode = null;
+        node.visited = false;
       }
     }
 
@@ -95,9 +97,11 @@ public class Navigasjon {
         currentNode.visited = true;
 
         for (Edge edge : currentNode.edges) {
-          if(!edge.toNode.visited && currentNode.distance + edge.weight < edge.toNode.distance){
-            edge.toNode.distance = currentNode.distance + edge.weight;
-            edge.toNode.previousNode = edge.fromNode;
+          if(!edge.toNode.visited){
+            if(currentNode.distance + edge.weight < edge.toNode.distance){
+              edge.toNode.distance = currentNode.distance + edge.weight;
+              edge.toNode.previousNode = edge.fromNode;
+            }
             nodePriorityQueue.remove(edge.toNode);
             nodePriorityQueue.add(edge.toNode);
           }
@@ -119,9 +123,11 @@ public class Navigasjon {
         currentNode.visited = true;
 
         for (Edge edge : currentNode.edges) {
-          if(!edge.toNode.visited && currentNode.distance + edge.weight < edge.toNode.distance){
-            edge.toNode.distance = currentNode.distance + edge.weight;
-            edge.toNode.previousNode = edge.fromNode;
+          if(!edge.toNode.visited){
+            if(currentNode.distance + edge.weight < edge.toNode.distance){
+              edge.toNode.distance = currentNode.distance + edge.weight;
+              edge.toNode.previousNode = edge.fromNode;
+            }
             nodePriorityQueue.remove(edge.toNode);
             nodePriorityQueue.add(edge.toNode);
           }
@@ -174,8 +180,45 @@ public class Navigasjon {
       }
     }
 
+    void createLandmarks(String filename)throws IOException{
+
+      landmarkNodes.add(nodeList[894067]); //Helsinki
+      landmarkNodes.add(nodeList[3109952]); //Tromsø
+      landmarkNodes.add(nodeList[5474505]); //Stockholm
+      landmarkNodes.add(nodeList[2315409]); //Mandal
+      landmarkNodes.add(nodeList[4677168]); //Bergen
+
+      String[][] landmarkDistanceTable = new String[landmarkNodes.size()][N];
+
+      for (int i = 0; i < landmarkNodes.size(); i++) {
+        init();
+        start(landmarkNodes.get(i));
+        for (int j = 0; j < N; j++) {
+          if(nodeList[j].distance == Integer.MAX_VALUE){
+            System.out.println("Landmark: " + i + "\tNode: " + j);
+          }
+          landmarkDistanceTable[i][j] = String.valueOf(nodeList[j].distance);
+        }
+      }
+      init();
+
+      PrintWriter printWriter = new PrintWriter(filename, StandardCharsets.UTF_8);
+      for (int i = 0; i < N; i++) {
+        for (int j = 0; j < landmarkNodes.size(); j++) {
+            printWriter.print(landmarkDistanceTable[j][i]);
+            if(j != landmarkNodes.size()-1){
+              printWriter.print(",");
+            }
+        }
+        printWriter.print("\n");
+      }
+      printWriter.close();
+
+    }
+
     void writeToFile(String filename) throws IOException {
       PrintWriter printWriter = new PrintWriter(filename, StandardCharsets.UTF_8);
+      printWriter.println("Latitude,Longitude,Node name");
 
       for (Node node : nodeList) {
         printWriter.println(node.latitude + "," + node.longtitude + "," + node.nodeNr);
@@ -185,6 +228,7 @@ public class Navigasjon {
 
     void writeCoordsToFile(String filename, Node node)throws IOException {
       PrintWriter printWriter = new PrintWriter(filename, StandardCharsets.UTF_8);
+      printWriter.println("Latitude,Longitude,Node name");
 
       Node currentNode = node;
       while(currentNode != null){
@@ -193,9 +237,6 @@ public class Navigasjon {
       }
       printWriter.close();
     }
-
-
-
   }
 
 
@@ -216,16 +257,15 @@ public class Navigasjon {
     graph.createEdges(edgeBr);
     graph.createInterestNodes(interestBr);
 
+    //graph.createLandmarks("landmarks.csv");
+
+    graph.start(graph.nodeList[0]);
+
+    /*for (Node node: graph.nodeList) {
+      System.out.print((node.distance == Integer.MAX_VALUE) ? node.nodeNr + "\t" + node.distance + "\n" : "                  \r");
+    }*/
+
     System.out.println("Graph created");
-
-    Node destinationNode = graph.nodeList[50];
-    graph.start(graph.nodeList[0],destinationNode);
-
-    System.out.println();
-    System.out.println();
-
-    graph.writeCoordsToFile("coords.txt",destinationNode);
-    System.out.println(destinationNode.distance);
 
 
 
