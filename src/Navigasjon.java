@@ -68,7 +68,7 @@ public class Navigasjon {
 
   static class DijkstraAlt{
 
-    int N,K,L;
+    int N,K,I;
 
     Queue<Node> nodePriorityQueue = new PriorityQueue<>();
     List<Node> landmarkNodes = new ArrayList<>();
@@ -241,11 +241,11 @@ public class Navigasjon {
       br.close();
     }
 
-    void createInterestNodes(BufferedReader br)throws IOException{
+    void createInterestNodes(BufferedReader br, int[] landmarkNodeNrList)throws IOException{
       StringTokenizer st = new StringTokenizer(br.readLine());
 
-      L = Integer.parseInt(st.nextToken());
-      for (int i = 0; i < L; i++) {
+      I = Integer.parseInt(st.nextToken());
+      for (int i = 0; i < I; i++) {
         st = new StringTokenizer(br.readLine());
         Node landmarkNode = nodeList[Integer.parseInt(st.nextToken())];
         landmarkNode.code = Byte.parseByte(st.nextToken());
@@ -253,11 +253,9 @@ public class Navigasjon {
       }
       br.close();
 
-      landmarkNodes.add(nodeList[894067]); //Helsinki
-      landmarkNodes.add(nodeList[3109952]); //Tromsø
-      landmarkNodes.add(nodeList[5474505]); //Stockholm
-      landmarkNodes.add(nodeList[2315409]); //Mandal
-      landmarkNodes.add(nodeList[4677168]); //Bergen
+      for (int j : landmarkNodeNrList) {
+        landmarkNodes.add(nodeList[j]);
+      }
     }
 
 
@@ -392,11 +390,14 @@ public class Navigasjon {
 
     BufferedReader edgeOBr = new BufferedReader(new FileReader(System.getProperty("user.dir") + System.getProperty("file.separator") + edgeFileName));
 
+    int[] landmarkNodeNrList = new int[]{894067,3109952,5474505,2315409,4677168};
+                                       //Helsinki,Tromsø,Stockholm,Mandal,Bergen
+
     DijkstraAlt graph = new DijkstraAlt();
 
     graph.createNodes(nodesBr);
     graph.createEdges(edgeBr);
-    graph.createInterestNodes(interestBr);
+    graph.createInterestNodes(interestBr,landmarkNodeNrList);
     System.out.println("Graph created");
 
     File fLFile = new File("fromLandmarks.csv");
