@@ -399,12 +399,17 @@ public class Navigasjon {
     graph.createInterestNodes(interestBr);
     System.out.println("Graph created");
 
-//    ALT preprosessering
-//    graph.createLandmarks("fromLandmarks.csv");
-//    graph.createOppositeEdges(edgeOBr);
-//    graph.createLandmarks("toLandmarks.csv");
+    File fLFile = new File("fromLandmarks.csv");
+    File tLFile = new File("toLandmarks.csv");
 
-
+    if(!(fLFile.exists() && tLFile.exists())){
+      //    ALT preprosessering
+      graph.createLandmarks("fromLandmarks.csv");
+      graph.createOppositeEdges(edgeOBr);
+      graph.createLandmarks("toLandmarks.csv");
+      System.out.println("Preprocessing for ALT finished\nRun the program again");
+      return;
+    }
 
     Node fromNode = graph.nodeList[232073];
     Node toNode = graph.nodeList[2518780];
