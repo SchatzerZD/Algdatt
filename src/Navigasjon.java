@@ -473,11 +473,6 @@ public class Navigasjon {
       graph.writeCoordsToFile("interest" + i + ".csv",interestingPlaces[i]);
     }
 
-/*for (Node node: graph.nodeList) {
-      System.out.print((node.distance == Integer.MAX_VALUE) ? node.nodeNr + "\t" + node.distance + "\n" : "                  \r");
-    }*/
-
-
   }
 
 
