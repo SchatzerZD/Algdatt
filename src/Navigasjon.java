@@ -278,7 +278,6 @@ public class Navigasjon {
         if(currentNode.code > 0 && currentNode != startNode){
           if((currentNode.code & interestCode) == interestCode){
             interestingNodes[nodesAdded] = currentNode;
-            writeCoordsToFile("interest" + nodesAdded + ".csv",currentNode);
             nodesAdded++;
           }
         }
@@ -363,7 +362,17 @@ public class Navigasjon {
         currentNode = currentNode.previousNode;
       }
       System.out.println();
+    }
 
+    int getNumberOfNodesInPath(Node node){
+      int numberOfNodesInPath = 0;
+
+      Node currentNode = node;
+      while(currentNode != null){
+        numberOfNodesInPath++;
+        currentNode = currentNode.previousNode;
+      }
+      return numberOfNodesInPath;
     }
 
   }
@@ -397,12 +406,14 @@ public class Navigasjon {
 
 
 
-    Node fromNode = graph.nodeList[4247796];
-    Node toNode = graph.nodeList[232073];
+    Node fromNode = graph.nodeList[232073];
+    Node toNode = graph.nodeList[2518780];
 
     graph.init();
     graph.readLinesFromFile("fromLandmarks.csv","toLandmarks.csv");
+    long start = System.currentTimeMillis();
     graph.alt(fromNode,toNode);
+    long finish = System.currentTimeMillis();
 
     int nodeDistance = toNode.distance/100;
 
@@ -413,13 +424,19 @@ public class Navigasjon {
     System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
     System.out.format("%-32s %2s %-32s %16s","|Til Node","|",toNode.nodeNr,"|\n");
     System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
-    System.out.format("%-32s %2s %-32s %16s","|Noder besøkt","|",graph.numberOfNodesVisited,"|\n");
+    System.out.format("%-32s %2s %-32s %16s","|Noder Besøkt","|",graph.numberOfNodesVisited,"|\n");
     System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
-    System.out.format("%-32s %2s %-32s %16s","|Kjøretid","|", String.format("%02d:%02d:%02d", nodeDistance/3600,(nodeDistance % 3600) / 60,nodeDistance % 60),"|\n");
+    System.out.format("%-32s %2s %-32s %16s","|Antall Noder i Ruta","|",graph.getNumberOfNodesInPath(toNode),"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Kjøretid (Distanse)","|", String.format("%02d:%02d:%02d", nodeDistance/3600,(nodeDistance % 3600) / 60,nodeDistance % 60),"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Algoritme Tid","|",((double)(finish - start)) / 1000 + "s","|\n");
     System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
 
     graph.init();
+    start = System.currentTimeMillis();
     graph.dijkstra(fromNode,toNode);
+    finish = System.currentTimeMillis();
 
     nodeDistance = toNode.distance/100;
 
@@ -433,15 +450,20 @@ public class Navigasjon {
     System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
     System.out.format("%-32s %2s %-32s %16s","|Noder besøkt","|",graph.numberOfNodesVisited,"|\n");
     System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
-    System.out.format("%-32s %2s %-32s %16s","|Kjøretid","|", String.format("%02d:%02d:%02d", nodeDistance/3600,(nodeDistance % 3600) / 60,nodeDistance % 60),"|\n");
+    System.out.format("%-32s %2s %-32s %16s","|Antall Noder i Ruta","|",graph.getNumberOfNodesInPath(toNode),"|\n");
     System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Kjøretid (Distanse)","|", String.format("%02d:%02d:%02d", nodeDistance/3600,(nodeDistance % 3600) / 60,nodeDistance % 60),"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Algoritme Tid","|",((double)(finish - start)) / 1000 + "s","|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+
+    graph.writeCoordsToFile("coords.csv",toNode);
 
 
     System.out.println("\n");
-    //Trondheim lufthavn, Værnes
-    Node[] chargingStations = graph.getNearestInterestingPlaces(graph.nodeList[7172108], (byte) 4,8);
-    for (Node node: chargingStations) {
-      System.out.println(node.nodeNr);
+    Node[] interestingPlaces = graph.getNearestInterestingPlaces(graph.nodeList[3509663], (byte) 8,8);
+    for (int i = 0; i < interestingPlaces.length; i++) {
+      graph.writeCoordsToFile("interest" + i + ".csv",interestingPlaces[i]);
     }
 
 /*for (Node node: graph.nodeList) {
