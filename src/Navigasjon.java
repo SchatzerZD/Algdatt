@@ -250,6 +250,9 @@ public class Navigasjon {
         Node landmarkNode = nodeList[Integer.parseInt(st.nextToken())];
         landmarkNode.code = Byte.parseByte(st.nextToken());
         landmarkNode.name = st.nextToken();
+        while(st.hasMoreTokens()){
+          landmarkNode.name += st.nextToken();
+        }
       }
       br.close();
 
