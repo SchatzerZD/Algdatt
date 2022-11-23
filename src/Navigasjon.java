@@ -405,6 +405,7 @@ public class Navigasjon {
 
     if(!(fLFile.exists() && tLFile.exists())){
       //    ALT preprosessering
+      System.out.println("Preproccesing for ALT started...");
       graph.createLandmarks("fromLandmarks.csv");
       graph.createOppositeEdges(edgeOBr);
       graph.createLandmarks("toLandmarks.csv");
