@@ -2,6 +2,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLOutput;
 import java.util.*;
 
 public class Navigasjon {
@@ -72,6 +73,7 @@ public class Navigasjon {
     Queue<Node> nodePriorityQueue = new PriorityQueue<>();
     List<Node> landmarkNodes = new ArrayList<>();
     Node[] nodeList;
+    int numberOfNodesVisited;
 
     void init(){
       nodePriorityQueue.clear();
@@ -87,11 +89,13 @@ public class Navigasjon {
       startNode.distance = 0;
 
       nodePriorityQueue.add(startNode);
+      numberOfNodesVisited = 0;
 
       Node currentNode;
       while(nodePriorityQueue.peek() != destinationNode){
         currentNode = nodePriorityQueue.remove();
         currentNode.inQueue = true;
+        numberOfNodesVisited++;
 
         for (Edge edge : currentNode.edges) {
           if(currentNode.distance + edge.weight < edge.toNode.distance){
@@ -117,10 +121,12 @@ public class Navigasjon {
 
       nodePriorityQueue.add(startNode);
       Node currentNode;
+      numberOfNodesVisited = 0;
 
       while(nodePriorityQueue.peek() != null){
         currentNode = nodePriorityQueue.remove();
         currentNode.inQueue = true;
+        numberOfNodesVisited++;
 
         for (Edge edge : currentNode.edges) {
           if(currentNode.distance + edge.weight < edge.toNode.distance){
@@ -146,11 +152,13 @@ public class Navigasjon {
       startNode.distance = 0;
       startNode.estDest = getBestEstimate(startNode,destinationNode,fromLandmarkLines,toLandmarkLines);
       nodePriorityQueue.add(startNode);
+      numberOfNodesVisited = 0;
 
       Node currentNode;
       while(nodePriorityQueue.peek() != destinationNode){
         currentNode = nodePriorityQueue.remove();
         currentNode.inQueue = true;
+        numberOfNodesVisited++;
 
         for (Edge edge: currentNode.edges) {
           Node adjNode = edge.toNode;
@@ -180,7 +188,6 @@ public class Navigasjon {
 
         int differenceFromLandmark = distanceFromLandmarkToDestination - distanceFromLandmarkToStart;
         if(differenceFromLandmark < 0)differenceFromLandmark = 0;
-
 
         int distanceFromStartToLandmark = Integer.parseInt(toLandmarkLines.get(startNode.nodeNr).split(",")[i]);
         int distanceFromDestinationToLandmark = Integer.parseInt(toLandmarkLines.get(destinationNode.nodeNr).split(",")[i]);
@@ -363,20 +370,47 @@ public class Navigasjon {
     graph.createOppositeEdges(edgeOBr);
     graph.createLandmarks("toLandmarks.csv");*/
 
+
+
+    Node fromNode = graph.nodeList[4247796];
+    Node toNode = graph.nodeList[232073];
+
+    System.out.println();
     graph.init();
-    graph.alt(graph.nodeList[0],graph.nodeList[4],"fromLandmarks.csv","toLandmarks.csv");
+    graph.alt(fromNode,toNode,"fromLandmarks.csv","toLandmarks.csv");
 
-    graph.printNodePath(graph.nodeList[4]);
-    System.out.println();
-    System.out.println(graph.nodeList[4].distance);
-    System.out.println();
+    int nodeDistance = toNode.distance/100;
+
+    System.out.format("%-32s %s %2s %s","\n\nALT\n+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Tur","|",fromNode.name + "-" + toNode.name,"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Fra Node","|",fromNode.nodeNr,"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Til Node","|",toNode.nodeNr,"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Noder besøkt","|",graph.numberOfNodesVisited,"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Kjøretid","|", String.format("%02d:%02d:%02d", nodeDistance/3600,(nodeDistance % 3600) / 60,nodeDistance % 60),"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
 
     graph.init();
-    graph.dijkstra(graph.nodeList[0],graph.nodeList[4]);
+    graph.dijkstra(fromNode,toNode);
 
-    graph.printNodePath(graph.nodeList[4]);
-    System.out.println();
-    System.out.println(graph.nodeList[4].distance);
+    nodeDistance = toNode.distance/100;
+
+
+    System.out.format("%-32s %s %2s %s","\n\nDIJKSTRA\n+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Tur","|",fromNode.name + "-" + toNode.name,"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Fra Node","|",fromNode.nodeNr,"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Til Node","|",toNode.nodeNr,"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Noder besøkt","|",graph.numberOfNodesVisited,"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+    System.out.format("%-32s %2s %-32s %16s","|Kjøretid","|", String.format("%02d:%02d:%02d", nodeDistance/3600,(nodeDistance % 3600) / 60,nodeDistance % 60),"|\n");
+    System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
+
 
 
 /*for (Node node: graph.nodeList) {
