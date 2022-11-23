@@ -74,6 +74,8 @@ public class Navigasjon {
     List<Node> landmarkNodes = new ArrayList<>();
     Node[] nodeList;
     int numberOfNodesVisited;
+    List<String> fromLandmarkLines;
+    List<String> toLandmarkLines;
 
     void init(){
       nodePriorityQueue.clear();
@@ -97,22 +99,7 @@ public class Navigasjon {
         currentNode.inQueue = true;
         numberOfNodesVisited++;
 
-        for (Edge edge : currentNode.edges) {
-          if(currentNode.distance + edge.weight < edge.toNode.distance){
-            edge.toNode.distance = currentNode.distance + edge.weight;
-            edge.toNode.previousNode = edge.fromNode;
-            if(edge.toNode.inQueue && nodePriorityQueue.remove(edge.toNode)){
-              nodePriorityQueue.add(edge.toNode);
-            }else{
-              nodePriorityQueue.add(edge.toNode);
-              edge.toNode.inQueue = true;
-            }
-          }
-        }
-
-       // System.out.printf("%d %d\n",nodePriorityQueue.element().nodeNr,nodePriorityQueue.element().distance);
-
-
+        iterateOverEdges(currentNode);
       }
     }
 
@@ -128,26 +115,12 @@ public class Navigasjon {
         currentNode.inQueue = true;
         numberOfNodesVisited++;
 
-        for (Edge edge : currentNode.edges) {
-          if(currentNode.distance + edge.weight < edge.toNode.distance){
-            edge.toNode.distance = currentNode.distance + edge.weight;
-            edge.toNode.previousNode = edge.fromNode;
-            if(edge.toNode.inQueue && nodePriorityQueue.remove(edge.toNode)){
-              nodePriorityQueue.add(edge.toNode);
-            }else{
-              nodePriorityQueue.add(edge.toNode);
-              edge.toNode.inQueue = true;
-            }
-          }
-        }
-       //System.out.printf("%d %d\n",nodePriorityQueue.element().nodeNr,nodePriorityQueue.element().distance);
+        iterateOverEdges(currentNode);
       }
     }
 
 
-    void alt(Node startNode, Node destinationNode, String fromLandmarksFileName, String toLandmarksFileName) throws IOException {
-      List<String> fromLandmarkLines = getLinesFromFile(fromLandmarksFileName);
-      List<String> toLandmarkLines = getLinesFromFile(toLandmarksFileName);
+    void alt(Node startNode, Node destinationNode) {
 
       startNode.distance = 0;
       startNode.estDest = getBestEstimate(startNode,destinationNode,fromLandmarkLines,toLandmarkLines);
@@ -198,6 +171,12 @@ public class Navigasjon {
         bestEstimateToDestination = Math.max(bestEstimateToDestination, biggestNumber);
       }
       return bestEstimateToDestination;
+    }
+
+
+    void readLinesFromFile(String fromLandmarksFileName, String toLandmarksFileName) throws IOException {
+      fromLandmarkLines = getLinesFromFile(fromLandmarksFileName);
+      toLandmarkLines = getLinesFromFile(toLandmarksFileName);
     }
 
     List<String> getLinesFromFile(String fileName) throws IOException {
@@ -280,6 +259,51 @@ public class Navigasjon {
       landmarkNodes.add(nodeList[2315409]); //Mandal
       landmarkNodes.add(nodeList[4677168]); //Bergen
     }
+
+
+    Node[] getNearestInterestingPlaces(Node startNode,byte interestCode, int amount) throws IOException {
+      Node[] interestingNodes = new Node[amount];
+
+      init();
+      startNode.distance = 0;
+      int nodesAdded = 0;
+
+      nodePriorityQueue.add(startNode);
+      Node currentNode;
+
+      while(nodePriorityQueue.peek() != null && nodesAdded < amount){
+        currentNode = nodePriorityQueue.remove();
+        currentNode.inQueue = true;
+
+        if(currentNode.code > 0 && currentNode != startNode){
+          if((currentNode.code & interestCode) == interestCode){
+            interestingNodes[nodesAdded] = currentNode;
+            writeCoordsToFile("interest" + nodesAdded + ".csv",currentNode);
+            nodesAdded++;
+          }
+        }
+
+        iterateOverEdges(currentNode);
+      }
+
+      return interestingNodes;
+    }
+
+    private void iterateOverEdges(Node currentNode) {
+      for (Edge edge : currentNode.edges) {
+        if(currentNode.distance + edge.weight < edge.toNode.distance){
+          edge.toNode.distance = currentNode.distance + edge.weight;
+          edge.toNode.previousNode = edge.fromNode;
+          if(edge.toNode.inQueue && nodePriorityQueue.remove(edge.toNode)){
+            nodePriorityQueue.add(edge.toNode);
+          }else{
+            nodePriorityQueue.add(edge.toNode);
+            edge.toNode.inQueue = true;
+          }
+        }
+      }
+    }
+
 
     void createLandmarks(String filename)throws IOException{
       String[][] landmarkDistanceTable = new String[landmarkNodes.size()][N];
@@ -366,18 +390,19 @@ public class Navigasjon {
     graph.createInterestNodes(interestBr);
     System.out.println("Graph created");
 
-/*    graph.createLandmarks("fromLandmarks.csv");
-    graph.createOppositeEdges(edgeOBr);
-    graph.createLandmarks("toLandmarks.csv");*/
+//    ALT preprosessering
+//    graph.createLandmarks("fromLandmarks.csv");
+//    graph.createOppositeEdges(edgeOBr);
+//    graph.createLandmarks("toLandmarks.csv");
 
 
 
     Node fromNode = graph.nodeList[4247796];
     Node toNode = graph.nodeList[232073];
 
-    System.out.println();
     graph.init();
-    graph.alt(fromNode,toNode,"fromLandmarks.csv","toLandmarks.csv");
+    graph.readLinesFromFile("fromLandmarks.csv","toLandmarks.csv");
+    graph.alt(fromNode,toNode);
 
     int nodeDistance = toNode.distance/100;
 
@@ -412,6 +437,12 @@ public class Navigasjon {
     System.out.format("%-32s %s %-32s %s","+ " + "-".repeat(31),"+","-".repeat(46),"+\n");
 
 
+    System.out.println("\n");
+    //Trondheim lufthavn, Værnes
+    Node[] chargingStations = graph.getNearestInterestingPlaces(graph.nodeList[7172108], (byte) 4,8);
+    for (Node node: chargingStations) {
+      System.out.println(node.nodeNr);
+    }
 
 /*for (Node node: graph.nodeList) {
       System.out.print((node.distance == Integer.MAX_VALUE) ? node.nodeNr + "\t" + node.distance + "\n" : "                  \r");
